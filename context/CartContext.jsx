@@ -329,12 +329,26 @@ export function CartProvider({ children }) {
  };
 
  const addToFavorites = async (product) => {
+  if (!product || !product._id) return;
+  const productIdStr = String(product._id);
+  let previousFavorites = favorites;
+
   setFavorites((prev) => {
-   if (prev.some((item) => item._id === product._id)) {
+   previousFavorites = prev;
+   if (prev.some((item) => String(item._id || item.id) === productIdStr)) {
     return prev;
    }
    return [...prev, product];
   });
+
+  const updatedFavorites = previousFavorites.some((item) => String(item._id || item.id) === productIdStr)
+   ? previousFavorites
+   : [...previousFavorites, product];
+
+  if (typeof window !== "undefined") {
+   localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
+   window.dispatchEvent(new Event("favoritesUpdated"));
+  }
 
   try {
    const res = await axiosInstance.post("/api/user/favorites", {
@@ -342,25 +356,66 @@ export function CartProvider({ children }) {
    });
    const data = res.data;
    if (!data.success) {
+    setFavorites(previousFavorites);
+    if (typeof window !== "undefined") {
+     localStorage.setItem("favorites", JSON.stringify(previousFavorites));
+     window.dispatchEvent(new Event("favoritesUpdated"));
+    }
    }
   } catch (error) {
+   // Hata durumunda geri al
+   setFavorites(previousFavorites);
+   if (typeof window !== "undefined") {
+    localStorage.setItem("favorites", JSON.stringify(previousFavorites));
+    window.dispatchEvent(new Event("favoritesUpdated"));
+   }
   }
  };
 
  const removeFromFavorites = async (productId) => {
-  setFavorites((prev) => prev.filter((item) => item._id !== productId));
+  if (!productId) return;
+  const productIdStr = String(productId);
+  let previousFavorites = favorites;
+
+  setFavorites((prev) => {
+   previousFavorites = prev;
+   return prev.filter((item) => String(item._id || item.id) !== productIdStr);
+  });
+
+  const updatedFavorites = previousFavorites.filter((item) => String(item._id || item.id) !== productIdStr);
+
+  if (typeof window !== "undefined") {
+   localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
+   window.dispatchEvent(new Event("favoritesUpdated"));
+  }
 
   try {
    const res = await axiosInstance.delete(`/api/user/favorites?productId=${productId}`);
    const data = res.data;
    if (!data.success) {
+    setFavorites(previousFavorites);
+    if (typeof window !== "undefined") {
+     localStorage.setItem("favorites", JSON.stringify(previousFavorites));
+     window.dispatchEvent(new Event("favoritesUpdated"));
+    }
+   } else {
+    if (typeof window !== "undefined") {
+     window.dispatchEvent(new Event("favoritesUpdated"));
+    }
    }
   } catch (error) {
+   setFavorites(previousFavorites);
+   if (typeof window !== "undefined") {
+    localStorage.setItem("favorites", JSON.stringify(previousFavorites));
+    window.dispatchEvent(new Event("favoritesUpdated"));
+   }
   }
  };
 
  const isFavorite = (productId) => {
-  return favorites.some((item) => item._id === productId);
+  if (!productId) return false;
+  const productIdStr = String(productId);
+  return favorites.some((item) => String(item._id || item.id) === productIdStr);
  };
 
  useEffect(() => {

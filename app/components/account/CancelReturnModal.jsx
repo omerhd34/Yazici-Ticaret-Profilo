@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
 
-export default function ReturnOrderModal({ show, orderId, onConfirm, onCancel }) {
+export default function CancelReturnModal({ show, orderId, onConfirm, onCancel }) {
  const [loading, setLoading] = useState(false);
 
  if (!show) return null;
@@ -27,9 +27,9 @@ export default function ReturnOrderModal({ show, orderId, onConfirm, onCancel })
     onClick={(e) => e.stopPropagation()}
    >
     <div className="p-6">
-     <h3 className="text-lg font-bold text-gray-900 mb-2">İade Talebi Oluştur</h3>
+     <h3 className="text-lg font-bold text-gray-900 mb-2">İade Talebini İptal Et</h3>
      <p className="text-sm text-gray-600 mb-6">
-      Bu sipariş için iade talebi oluşturmak istediğinize emin misiniz?
+      İade talebinizi iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.
      </p>
      <div className="flex justify-end gap-3">
       <button
@@ -42,17 +42,17 @@ export default function ReturnOrderModal({ show, orderId, onConfirm, onCancel })
       <button
        onClick={handleConfirm}
        disabled={loading}
-       className="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed relative"
+       className="px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed relative"
       >
        {loading ? (
         <>
-         <span className="opacity-0">İade Et</span>
+         <span className="opacity-0">Evet, İptal Et</span>
          <span className="absolute inset-0 flex items-center justify-center">
           <FaSpinner className="animate-spin h-5 w-5 text-white" />
          </span>
         </>
        ) : (
-        "İade Et"
+        "Evet, İptal Et"
        )}
       </button>
      </div>

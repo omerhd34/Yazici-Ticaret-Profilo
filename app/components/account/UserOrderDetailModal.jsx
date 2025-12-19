@@ -3,7 +3,7 @@ import { useMemo, useState, useEffect } from "react";
 import { HiX } from "react-icons/hi";
 import normalizeText from "@/lib/normalizeText";
 
-export default function UserOrderDetailModal({ show, order, addresses, onClose, onCancel, onReturn, formatOrderStatus }) {
+export default function UserOrderDetailModal({ show, order, addresses, onClose, onCancel, onReturn, onCancelReturn, formatOrderStatus }) {
  const [currentTime, setCurrentTime] = useState(() => Date.now());
 
  useEffect(() => {
@@ -76,10 +76,19 @@ export default function UserOrderDetailModal({ show, order, addresses, onClose, 
  const isShipped = s.includes("kargo") || s.includes("shipped") || s.includes("shipping");
  const isDelivered = s.includes("teslim") || s.includes("delivered") || s.includes("completed");
  const canCancel = !isCancelled && !isShipped && !isDelivered;
- const hasReturnRequest = Boolean(order?.returnRequest?.status);
+ // İade talebi var mı kontrolü (İptal Edildi durumu hariç, çünkü iptal edilen talepler tekrar iade edilemez)
+ const returnRequestStatus = order?.returnRequest?.status;
+ const hasReturnRequestCancelled = returnRequestStatus && normalizeText(returnRequestStatus).includes("iptal");
+ const hasReturnRequest = Boolean(returnRequestStatus) && !hasReturnRequestCancelled;
 
  const withinReturnWindow = useMemo(() => {
   if (!isDelivered) return false;
+
+  // Eğer iade talebi iptal edilmişse, tekrar iade edilemez
+  if (hasReturnRequestCancelled) {
+   return false;
+  }
+
   const deliveredAtRaw = order?.deliveredAt || order?.updatedAt || order?.date;
   if (!deliveredAtRaw) return false;
   const deliveredAt = new Date(deliveredAtRaw);
@@ -87,7 +96,31 @@ export default function UserOrderDetailModal({ show, order, addresses, onClose, 
   const diffMs = currentTime - deliveredAt.getTime();
   const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
   return diffMs <= sevenDaysMs;
- }, [isDelivered, order?.deliveredAt, order?.updatedAt, order?.date, currentTime]);
+ }, [isDelivered, hasReturnRequestCancelled, order?.deliveredAt, order?.updatedAt, order?.date, currentTime]);
+
+ const canCancelReturnRequest = useMemo(() => {
+  if (!hasReturnRequest || !order?.returnRequest) return false;
+
+  const statusNorm = normalizeText(order.returnRequest.status);
+  const isRequested = statusNorm.includes("talep");
+  const isApproved = statusNorm.includes("onay");
+  const isCancelled = statusNorm.includes("iptal");
+  const isRejected = statusNorm.includes("red");
+  const isCompleted = statusNorm.includes("tamam");
+
+  // Sadece "Talep Edildi" durumundaki iade talepleri iptal edilebilir
+  if (!isRequested || isApproved || isCancelled || isRejected || isCompleted) {
+   return false;
+  }
+
+  // 2 gün kontrolü (talep tarihinden itibaren)
+  const requestedAt = order.returnRequest.requestedAt ? new Date(order.returnRequest.requestedAt) : null;
+  if (!requestedAt || isNaN(requestedAt.getTime())) return false;
+
+  const diffMs = currentTime - requestedAt.getTime();
+  const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
+  return diffMs <= twoDaysMs;
+ }, [hasReturnRequest, order, currentTime]);
 
  if (!show || !order) return null;
 
@@ -176,7 +209,7 @@ export default function UserOrderDetailModal({ show, order, addresses, onClose, 
        <p className="font-semibold text-gray-900">{formatOrderStatus(order.status)}</p>
       </div>
       <div className="bg-gray-50 rounded-lg p-4">
-       <p className="text-xs text-gray-500 mb-1">Tarih</p>
+       <p className="text-xs text-gray-500 mb-1">Tarih ve Saat</p>
        <p className="font-semibold text-gray-900">
         {order.date ? new Date(order.date).toLocaleString("tr-TR") : "-"}
        </p>
@@ -224,22 +257,34 @@ export default function UserOrderDetailModal({ show, order, addresses, onClose, 
       {canCancel ? (
        <button
         onClick={() => onCancel(order.orderId)}
-        className="ml-auto px-5 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold transition"
+        className="ml-auto px-5 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold transition cursor-pointer"
        >
         Siparişi İptal Et
        </button>
       ) : isDelivered ? (
        hasReturnRequest ? (
-        <span className="text-sm text-gray-600">
-         İade Talebi: <span className="font-semibold">{order.returnRequest.status}</span>
-         {normalizeText(order?.returnRequest?.status) === normalizeText("Talep Edildi.") ? (
-          <span className="text-gray-500"> — Geri dönüşümüzü bekleyin.</span>
+        <div className="flex items-center justify-between gap-3 w-full">
+         <span className="text-sm text-gray-600">
+          İade Talebi: <span className="font-semibold">{order.returnRequest.status}</span>
+          {normalizeText(order?.returnRequest?.status) === normalizeText("Talep Edildi.") ? (
+           <span className="text-gray-500"> — Geri dönüşümüzü bekleyin.</span>
+          ) : null}
+         </span>
+         {canCancelReturnRequest && onCancelReturn ? (
+          <button
+           onClick={() => onCancelReturn(order.orderId)}
+           className="px-5 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold transition cursor-pointer whitespace-nowrap"
+          >
+           İade Talebini İptal Et
+          </button>
          ) : null}
-        </span>
+        </div>
+       ) : hasReturnRequestCancelled ? (
+        <span className="text-sm text-gray-500">Bu sipariş için iade talebi daha önce iptal edilmiş. Tekrar iade talebi oluşturulamaz.</span>
        ) : withinReturnWindow ? (
         <>
          <div className="text-sm text-gray-600">Sipariş teslim edildi. 7 gün içinde iade talebi oluşturabilirsiniz.</div>
-         <button onClick={() => onReturn(order.orderId)} className="px-5 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition">
+         <button onClick={() => onReturn(order.orderId)} className="px-5 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition cursor-pointer">
           İade Et
          </button>
         </>

@@ -64,7 +64,7 @@ export default function ActiveOrdersTable({
        <th className="px-4 py-3 text-left font-semibold text-gray-600">Müşteri</th>
        <th className="px-4 py-3 text-left font-semibold text-gray-600">Tarih</th>
        <th className="px-4 py-3 text-left font-semibold text-gray-600">Durum</th>
-       <th className="pl-4 pr-16 py-3 text-right font-semibold text-gray-600">Tutar</th>
+       <th className="pl-4 pr-16 py-3 text-right font-semibold text-gray-600">Tutar (₺)</th>
        <th className="px-4 py-3 text-right font-semibold text-gray-600">İşlem</th>
       </tr>
      </thead>
@@ -120,7 +120,7 @@ export default function ActiveOrdersTable({
           ) : null}
          </td>
          <td className="pl-4 pr-16 py-3 text-right font-bold text-indigo-600">
-          {Number(o.total || 0).toFixed(2)} ₺
+          {Number(o.total || 0).toFixed(2)}
          </td>
          <td className="px-4 py-3 text-right">
           <button

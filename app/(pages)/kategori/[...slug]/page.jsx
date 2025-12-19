@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { MENU_ITEMS } from "@/app/components/ui/Header";
 import CategoryHeader from "@/app/components/category/CategoryHeader";
@@ -11,8 +11,10 @@ import CategoryFiltersModal from "@/app/components/category/CategoryFiltersModal
 export default function KategoriPage() {
  const params = useParams();
  const router = useRouter();
- // eslint-disable-next-line react-hooks/exhaustive-deps
- const slug = params?.slug || [];
+ const slug = useMemo(() => {
+  if (!params?.slug) return [];
+  return Array.isArray(params.slug) ? params.slug : [params.slug];
+ }, [params?.slug]);
 
  const [products, setProducts] = useState([]);
  const [loading, setLoading] = useState(true);
@@ -29,6 +31,8 @@ export default function KategoriPage() {
  const [availableBrands, setAvailableBrands] = useState([]);
  const [priceRange, setPriceRange] = useState({ min: 0, max: 10000 });
 
+
+ const slugString = useMemo(() => slug.join('/'), [slug]);
 
  const fetchProducts = useCallback(async () => {
   setLoading(true);
@@ -171,7 +175,7 @@ export default function KategoriPage() {
   } finally {
    setLoading(false);
   }
- }, [slug, filters.sortBy, filters.sizes, filters.brands, filters.minPrice, filters.maxPrice]);
+ }, [slugString, filters.sortBy, filters.sizes, filters.brands, filters.minPrice, filters.maxPrice]);
 
  useEffect(() => {
   fetchProducts();

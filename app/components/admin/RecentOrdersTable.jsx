@@ -27,7 +27,7 @@ export default function RecentOrdersTable({ recentOrders, loading }) {
         <th className="px-4 py-3 text-left font-semibold text-gray-600">Sipariş</th>
         <th className="px-4 py-3 text-left font-semibold text-gray-600">Müşteri</th>
         <th className="px-4 py-3 text-left font-semibold text-gray-600">Durum</th>
-        <th className="px-4 py-3 text-right font-semibold text-gray-600">Tutar</th>
+        <th className="px-4 py-3 text-right font-semibold text-gray-600">Tutar (₺)</th>
        </tr>
       </thead>
       <tbody className="divide-y divide-gray-200">
@@ -50,7 +50,7 @@ export default function RecentOrdersTable({ recentOrders, loading }) {
            <div className="text-xs text-gray-500">{u.email || ""}</div>
           </td>
           <td className="px-4 py-3">{(o.status || "-").toString()}</td>
-          <td className="px-4 py-3 text-right font-bold text-indigo-600">{Number(o.total || 0).toFixed(2)} ₺</td>
+          <td className="px-4 py-3 text-right font-bold text-indigo-600">{Number(o.total || 0).toFixed(2)}</td>
          </tr>
         );
        })}

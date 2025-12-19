@@ -66,7 +66,7 @@ export default function SettingsTab({ passwordForm, setPasswordForm, passwordErr
       <label className="flex items-center gap-3 cursor-pointer">
        <input
         type="checkbox"
-        checked={notificationPreferences.emailNotifications}
+        checked={notificationPreferences?.emailNotifications ?? false}
         onChange={(e) => onNotificationChange('emailNotifications', e.target.checked)}
         className="w-5 h-5 cursor-pointer"
        />
@@ -75,7 +75,7 @@ export default function SettingsTab({ passwordForm, setPasswordForm, passwordErr
       <label className="flex items-center gap-3 cursor-pointer">
        <input
         type="checkbox"
-        checked={notificationPreferences.campaignNotifications}
+        checked={notificationPreferences?.campaignNotifications ?? false}
         onChange={(e) => onNotificationChange('campaignNotifications', e.target.checked)}
         className="w-5 h-5 cursor-pointer"
        />

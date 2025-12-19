@@ -336,8 +336,8 @@ const Header = () => {
        <div className="relative">
         <HiHeart size={22} className="group-hover:text-indigo-600 transition" />
         {isClient && getFavoriteCount() > 0 && (
-         <span className="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
-          {getFavoriteCount()}
+         <span className={`absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white shadow-sm ${getFavoriteCount() >= 9 ? "px-1.5 min-w-[20px] h-5" : "w-4 h-4"}`}>
+          {getFavoriteCount() >= 9 ? "9+" : getFavoriteCount()}
          </span>
         )}
        </div>
@@ -348,8 +348,8 @@ const Header = () => {
        <div className="relative">
         <FaShoppingCart size={22} className="group-hover:text-indigo-600 transition" />
         {isClient && getCartItemCount() > 0 && (
-         <span className="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
-          {getCartItemCount()}
+         <span className={`absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white shadow-sm ${getCartItemCount() >= 9 ? "px-1.5 min-w-[20px] h-5" : "w-4 h-4"}`}>
+          {getCartItemCount() >= 9 ? "9+" : getCartItemCount()}
          </span>
         )}
        </div>

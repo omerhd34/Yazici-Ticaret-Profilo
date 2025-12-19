@@ -36,12 +36,12 @@ export default function OrderSummary({
     </span>
    </div>
 
-   <label className="flex items-start gap-2 text-sm text-gray-700 mb-4">
+   <label className="flex items-start gap-2 text-sm text-gray-700 mb-4 cursor-pointer">
     <input
      type="checkbox"
      checked={acceptedTerms}
      onChange={(e) => onTermsChange(e.target.checked)}
-     className="mt-1"
+     className="mt-1 cursor-pointer"
     />
     <span>
      <span className="font-semibold">Ön Bilgilendirme Koşulları</span> ve{" "}
@@ -61,7 +61,7 @@ export default function OrderSummary({
     disabled={!canPay}
     onClick={onPay}
     className={`w-full py-4 rounded-lg font-bold text-lg transition ${canPay
-     ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+     ? "bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
      : "bg-gray-300 text-gray-600 cursor-not-allowed"
      }`}
    >

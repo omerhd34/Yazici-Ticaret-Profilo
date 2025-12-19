@@ -10,6 +10,7 @@ import OrdersTab from "@/app/components/account/OrdersTab";
 import UserOrderDetailModal from "@/app/components/account/UserOrderDetailModal";
 import CancelOrderModal from "@/app/components/account/CancelOrderModal";
 import ReturnOrderModal from "@/app/components/account/ReturnOrderModal";
+import CancelReturnModal from "@/app/components/account/CancelReturnModal";
 import AddressesTab from "@/app/components/account/AddressesTab";
 import AddressModal from "@/app/components/account/AddressModal";
 import CardsTab from "@/app/components/account/CardsTab";
@@ -539,6 +540,7 @@ export default function Hesabim() {
  const [showOrderModal, setShowOrderModal] = useState(false);
  const [cancelOrderConfirm, setCancelOrderConfirm] = useState({ show: false, orderId: null });
  const [returnOrderConfirm, setReturnOrderConfirm] = useState({ show: false, orderId: null });
+ const [cancelReturnConfirm, setCancelReturnConfirm] = useState({ show: false, orderId: null });
  const [showAllOrders, setShowAllOrders] = useState(false);
 
  const formatOrderStatus = (status) => {
@@ -937,12 +939,13 @@ export default function Hesabim() {
   setShowOrderModal(true);
  };
 
- const handleCancelOrder = async () => {
-  if (!cancelOrderConfirm.orderId) return;
+ const handleCancelOrder = async (orderId) => {
+  const targetOrderId = orderId || cancelOrderConfirm.orderId;
+  if (!targetOrderId) return;
 
   try {
-   const res = await fetch(`/api/user/orders/${cancelOrderConfirm.orderId}`, {
-    method: "PUT",
+   const res = await fetch(`/api/user/orders/${targetOrderId}`, {
+    method: "PATCH",
     headers: { "Content-Type": "application/json" },
     credentials: 'include',
     body: JSON.stringify({ status: "İptal Edildi" }),
@@ -957,25 +960,25 @@ export default function Hesabim() {
 
    showToast("Sipariş başarıyla iptal edildi!", "success");
    setCancelOrderConfirm({ show: false, orderId: null });
+   setShowOrderModal(false);
+   setSelectedOrder(null);
    fetchOrders();
   } catch (error) {
    showToast("Bir hata oluştu! Lütfen tekrar deneyin.", "error");
   }
  };
 
- const handleReturnOrder = async () => {
-  if (!returnOrderConfirm.orderId) return;
+ const handleReturnOrder = async (orderId) => {
+  const targetOrderId = orderId || returnOrderConfirm.orderId;
+  if (!targetOrderId) return;
 
   try {
-   const res = await fetch(`/api/user/orders/${returnOrderConfirm.orderId}`, {
-    method: "PUT",
+   const res = await fetch(`/api/user/orders/${targetOrderId}/return`, {
+    method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: 'include',
     body: JSON.stringify({
-     returnRequest: {
-      status: "Talep Edildi.",
-      requestedAt: new Date().toISOString(),
-     },
+     note: "",
     }),
    });
 
@@ -988,14 +991,68 @@ export default function Hesabim() {
 
    showToast("İade talebi başarıyla oluşturuldu!", "success");
    setReturnOrderConfirm({ show: false, orderId: null });
+
+   // Eğer modal açıksa ve aynı sipariş gösteriliyorsa, selectedOrder'ı güncelle
+   if (selectedOrder && selectedOrder.orderId === targetOrderId && data.returnRequest) {
+    setSelectedOrder({
+     ...selectedOrder,
+     returnRequest: data.returnRequest,
+    });
+   }
+
+   // Siparişleri güncelle
    fetchOrders();
   } catch (error) {
    showToast("Bir hata oluştu! Lütfen tekrar deneyin.", "error");
   }
  };
 
- const handleNotificationChange = async (preferences) => {
-  setNotificationPreferences(preferences);
+ const handleCancelReturnRequest = async (orderId) => {
+  const targetOrderId = orderId || cancelReturnConfirm.orderId;
+  if (!targetOrderId) return;
+
+  try {
+   const res = await fetch(`/api/user/orders/${targetOrderId}/return`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    credentials: 'include',
+   });
+
+   const data = await res.json();
+
+   if (!res.ok || !data.success) {
+    showToast(data.message || "İade talebi iptal edilemedi!", "error");
+    return;
+   }
+
+   showToast("İade talebi başarıyla iptal edildi!", "success");
+   setCancelReturnConfirm({ show: false, orderId: null });
+
+   // Eğer modal açıksa ve aynı sipariş gösteriliyorsa, selectedOrder'ı güncelle
+   if (selectedOrder && selectedOrder.orderId === targetOrderId) {
+    setSelectedOrder({
+     ...selectedOrder,
+     returnRequest: {
+      ...selectedOrder.returnRequest,
+      status: "İptal Edildi",
+      cancelledAt: new Date().toISOString(),
+     },
+    });
+   }
+
+   // Siparişleri güncelle
+   fetchOrders();
+  } catch (error) {
+   showToast("Bir hata oluştu! Lütfen tekrar deneyin.", "error");
+  }
+ };
+
+ const handleNotificationChange = async (key, value) => {
+  const updatedPreferences = {
+   ...notificationPreferences,
+   [key]: value,
+  };
+  setNotificationPreferences(updatedPreferences);
 
   try {
    const res = await fetch("/api/user/profile", {
@@ -1003,7 +1060,7 @@ export default function Hesabim() {
     headers: { "Content-Type": "application/json" },
     credentials: 'include',
     body: JSON.stringify({
-     notificationPreferences: preferences,
+     notificationPreferences: updatedPreferences,
     }),
    });
 
@@ -1011,12 +1068,14 @@ export default function Hesabim() {
 
    if (!res.ok || !data.success) {
     showToast(data.message || "Bildirim tercihleri güncellenemedi!", "error");
+    setNotificationPreferences(notificationPreferences);
     return;
    }
 
    showToast("Bildirim tercihleri güncellendi!", "success");
   } catch (error) {
    showToast("Bir hata oluştu! Lütfen tekrar deneyin.", "error");
+   setNotificationPreferences(notificationPreferences);
   }
  };
 
@@ -1130,6 +1189,7 @@ export default function Hesabim() {
        }}
        onCancel={(orderId) => setCancelOrderConfirm({ show: true, orderId })}
        onReturn={(orderId) => setReturnOrderConfirm({ show: true, orderId })}
+       onCancelReturn={(orderId) => setCancelReturnConfirm({ show: true, orderId })}
        formatOrderStatus={formatOrderStatus}
       />
 
@@ -1145,6 +1205,13 @@ export default function Hesabim() {
        orderId={returnOrderConfirm.orderId}
        onConfirm={handleReturnOrder}
        onCancel={() => setReturnOrderConfirm({ show: false, orderId: null })}
+      />
+
+      <CancelReturnModal
+       show={cancelReturnConfirm.show}
+       orderId={cancelReturnConfirm.orderId}
+       onConfirm={handleCancelReturnRequest}
+       onCancel={() => setCancelReturnConfirm({ show: false, orderId: null })}
       />
 
       {activeTab === "adresler" && (
