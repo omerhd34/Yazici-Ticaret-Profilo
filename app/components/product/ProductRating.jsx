@@ -19,15 +19,15 @@ export default function ProductRating({
  const avgRating = Math.round(avgRatingRaw * 10) / 10;
 
  return (
-  <div className="mb-4">
-   <div className="flex items-center gap-3 mb-3">
+  <div className="mb-3 sm:mb-4">
+   <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3 flex-wrap">
     <div className="flex text-yellow-400">
      {[...Array(5)].map((_, i) => {
       const isFilled = i < Math.round(avgRating || 0);
       return (
        <svg
         key={i}
-        className={`w-5 h-5 ${isFilled ? "fill-current" : "fill-transparent"}`}
+        className={`w-4 h-4 sm:w-5 sm:h-5 ${isFilled ? "fill-current" : "fill-transparent"}`}
         viewBox="0 0 20 20"
         style={!isFilled ? { stroke: "#d1d5db", strokeWidth: 1 } : {}}
        >
@@ -36,16 +36,16 @@ export default function ProductRating({
       );
      })}
     </div>
-    <span className="text-sm text-gray-600">
+    <span className="text-xs sm:text-sm text-gray-600">
      {reviewCount > 0 ? `${avgRating.toFixed(1)} (${reviewCount} değerlendirme)` : "0.0 (0 değerlendirme)"}
     </span>
    </div>
 
    {!checkingRating && canRate && !ratingSubmitted && (
-    <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-     <p className="text-sm font-semibold text-gray-900 mb-3">Bu ürüne puan verin:</p>
+    <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 sm:p-4">
+     <p className="text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3">Bu ürüne puan verin:</p>
      <div
-      className="flex items-center gap-2"
+      className="flex items-center gap-1.5 sm:gap-2"
       onMouseLeave={() => onHoverRating(0)}
      >
       {[1, 2, 3, 4, 5].map((star) => (
@@ -59,7 +59,7 @@ export default function ProductRating({
          : "text-gray-300 hover:text-yellow-300"
          }`}
        >
-        <FaStar size={24} className={(hoverRating || userRating) >= star ? "fill-current" : ""} />
+        <FaStar size={20} className={`sm:w-6 sm:h-6 ${(hoverRating || userRating) >= star ? "fill-current" : ""}`} />
        </button>
       ))}
      </div>

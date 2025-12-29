@@ -49,16 +49,16 @@ export default function ProductBreadcrumb({ product }) {
  const subCategoryUrl = subCategoryPath ? `/kategori/${categoryPath}/${subCategoryPath}` : categoryUrl;
 
  return (
-  <div className="flex items-center gap-2 text-sm mb-8 text-gray-600">
+  <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm mb-4 sm:mb-6 md:mb-8 text-gray-600 flex-wrap">
    <Link href="/" className="hover:text-indigo-600">Ana Sayfa</Link>
    <span>/</span>
-   <Link href={categoryUrl} className="hover:text-indigo-600">
+   <Link href={categoryUrl} className="hover:text-indigo-600 truncate max-w-[150px] sm:max-w-none">
     {product.category}
    </Link>
    {product.subCategory && (
     <>
      <span>/</span>
-     <Link href={subCategoryUrl} className="hover:text-indigo-600">
+     <Link href={subCategoryUrl} className="hover:text-indigo-600 truncate max-w-[150px] sm:max-w-none">
       {product.subCategory}
      </Link>
     </>

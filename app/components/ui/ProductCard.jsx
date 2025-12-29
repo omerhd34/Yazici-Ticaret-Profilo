@@ -9,7 +9,7 @@ import Image from "next/image";
 import { getProductUrl } from "@/app/utils/productUrl";
 import { getColorHex } from "@/app/utils/colorUtils";
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, priority = false }) {
  const [isImageHovered, setIsImageHovered] = useState(false);
  const [currentImageIndex, setCurrentImageIndex] = useState(0);
  const { addToFavorites, removeFromFavorites, isFavorite: checkFavorite, addToCart, removeFromCart, cart } = useCart();
@@ -146,7 +146,9 @@ export default function ProductCard({ product }) {
        height={600}
        src={images[currentImageIndex]}
        alt={product.name}
-       quality={90}
+       quality={70}
+       priority={priority}
+       loading={priority ? "eager" : "lazy"}
        className={`max-w-full max-h-full object-contain transition-transform duration-500 ${isImageHovered ? "scale-110" : "scale-100"
         }`}
        onError={(e) => {
@@ -159,7 +161,9 @@ export default function ProductCard({ product }) {
        height={600}
        src="/products/beyaz-esya.webp"
        alt={product.name}
-       quality={90}
+       quality={70}
+       priority={priority}
+       loading={priority ? "eager" : "lazy"}
        className={`max-w-full max-h-full object-contain transition-transform duration-500 ${isImageHovered ? "scale-110" : "scale-100"
         }`}
       />

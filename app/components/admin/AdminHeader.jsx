@@ -39,7 +39,7 @@ const AdminHeader = () => {
     <div className="flex justify-between items-center gap-4">
      <Link href="/admin" className="flex items-center group shrink-0">
       <div className="flex flex-col leading-tight">
-       <span className="font-[Racing_Sans_One] text-2xl md:text-3xl font-extrabold tracking-[0.2em] text-indigo-600 transition-colors duration-1000 ease-out group-hover:text-blue-900 select-none">
+       <span className="font-[Open_Sans] text-2xl md:text-3xl font-extrabold tracking-[0.2em] text-indigo-600 transition-colors duration-1000 ease-out group-hover:text-blue-900 select-none">
         YAZICI TİCARET
        </span>
       </div>

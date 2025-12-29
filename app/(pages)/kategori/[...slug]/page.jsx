@@ -14,7 +14,6 @@ import ProductBreadcrumb from "@/app/components/product/ProductBreadcrumb";
 import ProductImageGallery from "@/app/components/product/ProductImageGallery";
 import ProductRating from "@/app/components/product/ProductRating";
 import ProductPrice from "@/app/components/product/ProductPrice";
-import ProductStockStatus from "@/app/components/product/ProductStockStatus";
 import ProductColorSelector from "@/app/components/product/ProductColorSelector";
 import ProductQuantitySelector from "@/app/components/product/ProductQuantitySelector";
 import ProductActions from "@/app/components/product/ProductActions";
@@ -43,11 +42,16 @@ export default function KategoriPage() {
   maxPrice: "",
   brands: [],
   categories: [],
+  bagTypes: [],
+  screenSizes: [],
+  coolingCapacities: [],
   sortBy: "-createdAt",
  });
 
  const [availableBrands, setAvailableBrands] = useState([]);
  const [availableCategories, setAvailableCategories] = useState([]);
+ const [availableScreenSizes, setAvailableScreenSizes] = useState([]);
+ const [availableCoolingCapacities, setAvailableCoolingCapacities] = useState([]);
  const [priceRange, setPriceRange] = useState({ min: 0, max: 10000 });
 
  // Ürün detay sayfası için state'ler
@@ -70,14 +74,10 @@ export default function KategoriPage() {
 
  const slugString = useMemo(() => slug.join('/'), [slug]);
 
- // Ürün detay sayfası kontrolü: 
  const isProductDetailPage = useMemo(() => {
   if (slug.length === 3) {
-   // category/subcategory/serialNumber formatı
    return true;
   } else if (slug.length === 2) {
-   // category/serialNumber formatı (alt kategori yoksa)
-   // Son parçanın seri numarası olup olmadığını kontrol et (büyük harfler ve sayılar içeriyorsa)
    const lastPart = slug[1];
    const serialNumberPattern = /^[A-Z0-9]+$/;
    return serialNumberPattern.test(lastPart);
@@ -171,12 +171,10 @@ export default function KategoriPage() {
 
    if (subCategory) url += `&subCategory=${encodeURIComponent(subCategory)}`;
 
-   // Öne Çıkan Ürünler filtresi için API'ye isFeatured parametresi gönder
    if (filters.sortBy === "filter:featured") {
     url += `&isFeatured=true`;
    }
 
-   // Sadece gerçek sıralama değerlerini API'ye gönder (filtre değerlerini değil)
    if (filters.sortBy && !filters.sortBy.startsWith('filter:')) {
     url += `&sort=${filters.sortBy}`;
    }
@@ -224,6 +222,149 @@ export default function KategoriPage() {
      );
     }
 
+    // Bag type filter (only for elektrikli-supurge category)
+    if (categorySlug === "elektrikli-supurge" && filters.bagTypes.length > 0) {
+     filteredProducts = filteredProducts.filter((p) => {
+      // Ürünün specifications'ını kontrol et
+      const allSpecs = [
+       ...(p.specifications || []),
+       ...(p.colors?.[0]?.specifications || [])
+      ];
+
+      // "Filtreleme sistemi" key'inde "torbalı" veya "torbasız" ara
+      let hasBagType = false;
+      for (const spec of allSpecs) {
+       if (spec.items) {
+        for (const item of spec.items) {
+         const key = (item.key || "").toLowerCase();
+         const value = (item.value || "").toLowerCase();
+
+         // Key'de "filtreleme sistemi" ara
+         if (key.includes("filtreleme") && key.includes("sistemi")) {
+          // Value'da "torbalı" veya "torbasız" ara
+          if (filters.bagTypes.includes("torbalı") && value.includes("torbalı")) {
+           hasBagType = true;
+           break;
+          }
+          if (filters.bagTypes.includes("torbasız") && value.includes("torbasız")) {
+           hasBagType = true;
+           break;
+          }
+         }
+        }
+       }
+       if (hasBagType) break;
+      }
+
+      return hasBagType;
+     });
+    }
+
+    // Screen size filter (only for televizyon category)
+    if (categorySlug === "televizyon" && filters.screenSizes.length > 0) {
+     filteredProducts = filteredProducts.filter((p) => {
+      // Ürünün specifications'ını kontrol et
+      const allSpecs = [
+       ...(p.specifications || []),
+       ...(p.colors?.[0]?.specifications || [])
+      ];
+
+      // "Ekran Büyüklüğü" key'inde değer ara
+      let hasScreenSize = false;
+      for (const spec of allSpecs) {
+       if (spec.items) {
+        for (const item of spec.items) {
+         const key = (item.key || "").trim();
+         const keyLower = key.toLowerCase();
+         const value = (item.value || "").trim();
+
+         // Key kontrolü - ProductImportantFeatures.jsx ile aynı mantık
+         const isScreenSizeKey = key === "Ekran Büyüklüğü" ||
+          keyLower === "ekran büyüklüğü" ||
+          (keyLower.includes("ekran") && keyLower.includes("büyüklük"));
+
+         if (isScreenSizeKey && value) {
+          // Seçili ekran büyüklükleriyle karşılaştır
+          for (const selectedSize of filters.screenSizes) {
+           // Tam eşleşme kontrolü
+           if (value === selectedSize) {
+            hasScreenSize = true;
+            break;
+           }
+           // Sayısal değer eşleşmesi kontrolü (örn: "32 inç" ve "32 inç (82 cm)")
+           const productSizeNum = parseInt(value.match(/\d+/)?.[0] || "0");
+           const selectedSizeNum = parseInt(selectedSize.match(/\d+/)?.[0] || "0");
+           if (productSizeNum > 0 && productSizeNum === selectedSizeNum) {
+            hasScreenSize = true;
+            break;
+           }
+           // Birbirini içerme kontrolü
+           if (value.includes(selectedSize) || selectedSize.includes(value)) {
+            hasScreenSize = true;
+            break;
+           }
+          }
+          if (hasScreenSize) break;
+         }
+        }
+       }
+       if (hasScreenSize) break;
+      }
+
+      return hasScreenSize;
+     });
+    }
+
+    // Cooling capacity filter (only for klima category)
+    if (categorySlug === "klima" && filters.coolingCapacities.length > 0) {
+     filteredProducts = filteredProducts.filter((p) => {
+      // Ürünün specifications'ını kontrol et
+      const allSpecs = [
+       ...(p.specifications || []),
+       ...(p.colors?.[0]?.specifications || [])
+      ];
+
+      // "Soğutma Kapasitesi" key'inde değer ara
+      let hasCoolingCapacity = false;
+      for (const spec of allSpecs) {
+       if (spec.items) {
+        for (const item of spec.items) {
+         const key = (item.key || "").toLowerCase().trim();
+         const value = (item.value || "").trim();
+
+         // Key'de "soğutma" ve "kapasite" ara
+         if (key.includes("soğutma") && key.includes("kapasite") && value) {
+          // Seçili soğutma kapasiteleriyle karşılaştır
+          for (const selectedCapacity of filters.coolingCapacities) {
+           // Tam eşleşme kontrolü
+           if (value === selectedCapacity) {
+            hasCoolingCapacity = true;
+            break;
+           }
+           // Sayısal değer eşleşmesi kontrolü (örn: "9000 BTU/h" ve "9000")
+           const productCapacityNum = parseInt(value.match(/\d+/)?.[0] || "0");
+           const selectedCapacityNum = parseInt(selectedCapacity.match(/\d+/)?.[0] || "0");
+           if (productCapacityNum > 0 && productCapacityNum === selectedCapacityNum) {
+            hasCoolingCapacity = true;
+            break;
+           }
+           // Birbirini içerme kontrolü
+           if (value.includes(selectedCapacity) || selectedCapacity.includes(value)) {
+            hasCoolingCapacity = true;
+            break;
+           }
+          }
+          if (hasCoolingCapacity) break;
+         }
+        }
+       }
+       if (hasCoolingCapacity) break;
+      }
+
+      return hasCoolingCapacity;
+     });
+    }
+
     // Category filter (only for "yeniler" and "indirim" pages)
     if (categorySlug === "yeni" || categorySlug === "yeniler" || categorySlug === "indirim") {
      if (filters.categories.length > 0) {
@@ -259,6 +400,74 @@ export default function KategoriPage() {
      setAvailableCategories([]);
     }
 
+    // Extract unique screen sizes (only for televizyon category)
+    if (categorySlug === "televizyon") {
+     const screenSizes = new Set();
+     data.data.forEach((p) => {
+      const allSpecs = [
+       ...(p.specifications || []),
+       ...(p.colors?.[0]?.specifications || [])
+      ];
+      for (const spec of allSpecs) {
+       if (spec.items) {
+        for (const item of spec.items) {
+         const key = (item.key || "").trim();
+         const keyLower = key.toLowerCase();
+         const value = (item.value || "").trim();
+         // ProductImportantFeatures.jsx'teki kontrolle aynı mantık
+         const isScreenSizeKey = key === "Ekran Büyüklüğü" ||
+          keyLower === "ekran büyüklüğü" ||
+          (keyLower.includes("ekran") && keyLower.includes("büyüklük"));
+         if (isScreenSizeKey && value) {
+          screenSizes.add(value);
+         }
+        }
+       }
+      }
+     });
+     const sortedScreenSizes = Array.from(screenSizes).sort((a, b) => {
+      // Sayısal değerleri çıkar ve karşılaştır (örn: "32 inç" -> 32)
+      const numA = parseInt(a.match(/\d+/)?.[0] || "0");
+      const numB = parseInt(b.match(/\d+/)?.[0] || "0");
+      return numA - numB;
+     });
+     setAvailableScreenSizes(sortedScreenSizes);
+    } else {
+     setAvailableScreenSizes([]);
+    }
+
+    // Extract unique cooling capacities (only for klima category)
+    if (categorySlug === "klima") {
+     const coolingCapacities = new Set();
+     data.data.forEach((p) => {
+      const allSpecs = [
+       ...(p.specifications || []),
+       ...(p.colors?.[0]?.specifications || [])
+      ];
+      for (const spec of allSpecs) {
+       if (spec.items) {
+        for (const item of spec.items) {
+         const key = (item.key || "").toLowerCase().trim();
+         const value = (item.value || "").trim();
+         // "soğutma kapasitesi" key'ini kontrol et
+         if (key.includes("soğutma") && key.includes("kapasite") && value) {
+          coolingCapacities.add(value);
+         }
+        }
+       }
+      }
+     });
+     const sortedCoolingCapacities = Array.from(coolingCapacities).sort((a, b) => {
+      // Sayısal değerleri çıkar ve karşılaştır (örn: "9000 BTU/h" -> 9000)
+      const numA = parseInt(a.match(/\d+/)?.[0] || "0");
+      const numB = parseInt(b.match(/\d+/)?.[0] || "0");
+      return numA - numB;
+     });
+     setAvailableCoolingCapacities(sortedCoolingCapacities);
+    } else {
+     setAvailableCoolingCapacities([]);
+    }
+
     // Calculate price range
     if (data.data.length > 0) {
      const prices = data.data.map((p) => {
@@ -275,7 +484,7 @@ export default function KategoriPage() {
   } finally {
    setLoading(false);
   }
- }, [slug, filters.sortBy, filters.brands, filters.categories, filters.minPrice, filters.maxPrice]);
+ }, [slug, filters.sortBy, filters.brands, filters.categories, filters.bagTypes, filters.screenSizes, filters.coolingCapacities, filters.minPrice, filters.maxPrice]);
 
  // Ürün detay sayfası için fetch
  const fetchProductBySerialNumber = useCallback(async (serialNumber) => {
@@ -476,13 +685,43 @@ export default function KategoriPage() {
   }));
  };
 
+ const handleBagTypeToggle = (bagType) => {
+  setFilters((prev) => ({
+   ...prev,
+   bagTypes: prev.bagTypes.includes(bagType)
+    ? prev.bagTypes.filter((b) => b !== bagType)
+    : [...prev.bagTypes, bagType],
+  }));
+ };
+
+ const handleScreenSizeToggle = (screenSize) => {
+  setFilters((prev) => ({
+   ...prev,
+   screenSizes: prev.screenSizes.includes(screenSize)
+    ? prev.screenSizes.filter((s) => s !== screenSize)
+    : [...prev.screenSizes, screenSize],
+  }));
+ };
+
+ const handleCoolingCapacityToggle = (coolingCapacity) => {
+  setFilters((prev) => ({
+   ...prev,
+   coolingCapacities: prev.coolingCapacities.includes(coolingCapacity)
+    ? prev.coolingCapacities.filter((c) => c !== coolingCapacity)
+    : [...prev.coolingCapacities, coolingCapacity],
+  }));
+ };
+
  const clearFilters = () => {
   const hasActiveFilters =
    (slug.length > 1) ||
    (filters.minPrice && filters.minPrice !== "") ||
    (filters.maxPrice && filters.maxPrice !== "") ||
    (filters.brands && filters.brands.length > 0) ||
-   (filters.categories && filters.categories.length > 0);
+   (filters.categories && filters.categories.length > 0) ||
+   (filters.bagTypes && filters.bagTypes.length > 0) ||
+   (filters.screenSizes && filters.screenSizes.length > 0) ||
+   (filters.coolingCapacities && filters.coolingCapacities.length > 0);
 
   if (!hasActiveFilters) {
    return;
@@ -494,6 +733,9 @@ export default function KategoriPage() {
    maxPrice: "",
    brands: [],
    categories: [],
+   bagTypes: [],
+   screenSizes: [],
+   coolingCapacities: [],
   });
 
   if (slug.length > 1) {
@@ -647,13 +889,13 @@ export default function KategoriPage() {
   }
 
   return (
-   <div className="min-h-screen bg-gray-50 py-12">
+   <div className="min-h-screen bg-gray-50 py-4 sm:py-6 md:py-8 lg:py-12">
     <Toast toast={toast} setToast={setToast} />
 
-    <div className="container mx-auto px-4 max-w-8xl">
+    <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 max-w-8xl">
      <ProductBreadcrumb product={product} />
 
-     <div className="grid lg:grid-cols-12 gap-8">
+     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 md:gap-8">
       <div className="lg:col-span-5 lg:pr-8">
        <ProductImageGallery
         images={colorImages}
@@ -667,7 +909,7 @@ export default function KategoriPage() {
 
       <div className="lg:col-span-7">
        {product.brand && (
-        <p className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+        <p className="text-xs sm:text-sm text-gray-500 uppercase tracking-wide mb-2">
          {product.brand}
          {colorSerialNumber && (
           <span className="ml-2 font-mono text-gray-900 font-semibold normal-case">- {colorSerialNumber}</span>
@@ -675,12 +917,12 @@ export default function KategoriPage() {
         </p>
        )}
        {!product.brand && colorSerialNumber && (
-        <p className="text-sm text-gray-500 mb-2">
+        <p className="text-xs sm:text-sm text-gray-500 mb-2">
          <span className="font-mono text-gray-600">Seri No: {colorSerialNumber}</span>
         </p>
        )}
 
-       <h1 className="text-3xl font-black text-gray-900 mb-4">{product.name}</h1>
+       <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900 mb-3 sm:mb-4">{product.name}</h1>
 
        <ProductRating
         product={product}
@@ -699,11 +941,9 @@ export default function KategoriPage() {
         originalPrice={colorPrice}
        />
 
-       <p className="text-gray-600 mb-6 leading-relaxed max-w-2xl wrap-break-word">
+       <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 leading-relaxed max-w-2xl wrap-break-word">
         {product.description}
        </p>
-
-       <ProductStockStatus stock={colorStock} />
 
        <ProductColorSelector
         colors={product.colors}
@@ -733,13 +973,15 @@ export default function KategoriPage() {
      </div>
 
      {/* Önemli Özellikler Bölümü */}
-     <ProductImportantFeatures product={product} selectedColor={selectedColor} />
+     <div className="mt-6 sm:mt-8 md:mt-12">
+      <ProductImportantFeatures product={product} selectedColor={selectedColor} />
+     </div>
 
      {/* Takım İçeriği Bölümü */}
      <ProductBundleItems product={product} selectedColor={selectedColor} />
 
      {/* Tüm Özellikler Bölümü */}
-     <div className="mt-12">
+     <div className="mt-6 sm:mt-8 md:mt-12">
       <ProductAllFeatures product={product} selectedColor={selectedColor} />
      </div>
     </div>
@@ -753,12 +995,12 @@ export default function KategoriPage() {
  if (isCampaignsPage) {
   return (
    <div className="min-h-screen bg-gray-50">
-    <div className="bg-linear-to-r from-indigo-600 to-purple-600 text-white py-12">
-     <div className="container mx-auto px-4">
-      <h1 className="text-4xl font-black mb-2">Kampanyalar</h1>
+    <div className="bg-linear-to-r from-indigo-600 to-purple-600 text-white py-6 sm:py-8 md:py-12">
+     <div className="container mx-auto px-3 sm:px-4 md:px-6">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-black mb-2">Kampanyalar</h1>
      </div>
     </div>
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
      <div className="flex justify-center items-center">
       <div className="w-full max-w-2xl">
        <Image
@@ -779,21 +1021,26 @@ export default function KategoriPage() {
  return (
   <div className="min-h-screen bg-gray-50">
    <CategoryHeader categoryName={getCategoryName()} productCount={expandedProductsCount} />
-   <div className="container mx-auto px-4 py-8">
-    <div className="flex gap-6">
+   <div className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
+    <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
      <CategoryFiltersSidebar
       slug={slug}
       filters={filters}
       availableBrands={availableBrands}
       availableCategories={availableCategories}
+      availableScreenSizes={availableScreenSizes}
+      availableCoolingCapacities={availableCoolingCapacities}
       onClearFilters={clearFilters}
       onMinPriceChange={(value) => setFilters((prev) => ({ ...prev, minPrice: value }))}
       onMaxPriceChange={(value) => setFilters((prev) => ({ ...prev, maxPrice: value }))}
       onBrandToggle={handleBrandToggle}
       onCategoryToggle={handleCategoryToggle}
+      onBagTypeToggle={handleBagTypeToggle}
+      onScreenSizeToggle={handleScreenSizeToggle}
+      onCoolingCapacityToggle={handleCoolingCapacityToggle}
      />
 
-     <div className="flex-1">
+     <div className="flex-1 min-w-0">
       <CategoryToolbar
        sortBy={filters.sortBy}
        onSortChange={(value) => setFilters({ ...filters, sortBy: value })}
@@ -817,12 +1064,17 @@ export default function KategoriPage() {
     filters={filters}
     availableBrands={availableBrands}
     availableCategories={availableCategories}
+    availableScreenSizes={availableScreenSizes}
+    availableCoolingCapacities={availableCoolingCapacities}
     onClose={() => setShowFilters(false)}
     onClearFilters={clearFilters}
     onMinPriceChange={(value) => setFilters((prev) => ({ ...prev, minPrice: value }))}
     onMaxPriceChange={(value) => setFilters((prev) => ({ ...prev, maxPrice: value }))}
     onBrandToggle={handleBrandToggle}
     onCategoryToggle={handleCategoryToggle}
+    onBagTypeToggle={handleBagTypeToggle}
+    onScreenSizeToggle={handleScreenSizeToggle}
+    onCoolingCapacityToggle={handleCoolingCapacityToggle}
    />
   </div>
  );

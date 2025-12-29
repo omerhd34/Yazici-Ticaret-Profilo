@@ -24,7 +24,7 @@ export default function SubCategoryFilter({ slug, onLinkClick }) {
      return (
       <Link
        key={subCat.path}
-       href={subCat.path}
+       href={isActive ? menuItem.path : subCat.path}
        onClick={onLinkClick}
        className={`block px-4 py-2 rounded-lg text-sm font-medium transition ${isActive
         ? "bg-indigo-600 text-white"

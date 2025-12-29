@@ -4,13 +4,12 @@ import { useState, useLayoutEffect, useRef, useMemo } from "react";
 import { HiSearch, HiChevronUp, HiChevronDown } from "react-icons/hi";
 
 const PRICE_RANGES = [
- { label: "0 - 9999 TL", min: 0, max: 9999 },
- { label: "10000 - 14999 TL", min: 10000, max: 14999 },
- { label: "15000 - 19999 TL", min: 15000, max: 19999 },
- { label: "20000 - 29999 TL", min: 20000, max: 29999 },
- { label: "30000 - 44999 TL", min: 30000, max: 44999 },
- { label: "45000 - 69999 TL", min: 45000, max: 69999 },
- { label: "70000 TL üzerinde", min: 70000, max: null },
+ { label: "0 - 14999 TL", min: 0, max: 14999 },
+ { label: "15000 - 24999 TL", min: 15000, max: 24999 },
+ { label: "25000 - 39999 TL", min: 25000, max: 39999 },
+ { label: "40000 - 59999 TL", min: 40000, max: 59999 },
+ { label: "60000 - 79999 TL", min: 60000, max: 79999 },
+ { label: "80000 TL üzerinde", min: 80000, max: null },
 ];
 
 const SMALL_PRICE_RANGES = [

@@ -48,18 +48,18 @@ export default function ProductImageGallery({
 
  return (
   <>
-   <div className="space-y-4">
+   <div className="space-y-3 sm:space-y-4">
     <div
-     className="relative aspect-5/5 bg-white rounded-xl overflow-hidden shadow-lg cursor-pointer"
+     className="relative aspect-square sm:aspect-5/5 bg-white rounded-lg sm:rounded-xl overflow-hidden shadow-lg cursor-pointer"
      onClick={() => openLightbox(selectedImage)}
     >
      {isNew && (
-      <span className="absolute top-4 left-4 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
+      <span className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 sm:px-3 sm:py-1 rounded-full z-10">
        YENİ
       </span>
      )}
      {discountPercentage > 0 && (
-      <span className="absolute top-4 right-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
+      <span className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-red-600 text-white text-xs font-bold px-2 py-0.5 sm:px-3 sm:py-1 rounded-full z-10">
        İNDİRİM
       </span>
      )}
@@ -68,14 +68,14 @@ export default function ProductImageGallery({
       height={1200}
       src={images[selectedImage]}
       alt={productName}
-      quality={95}
+      quality={70}
       priority={selectedImage === 0}
-      className="w-full h-full object-contain p-6"
+      className="w-full h-full object-contain p-3 sm:p-4 md:p-6"
      />
     </div>
 
     {images.length > 1 && (
-     <div className="grid grid-cols-6 gap-3">
+     <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 sm:gap-3">
       {images.map((img, idx) => (
        <button
         key={idx}
@@ -90,8 +90,8 @@ export default function ProductImageGallery({
          height={300}
          src={img}
          alt={`${productName} ${idx + 1}`}
-         quality={85}
-         className="w-full h-full object-cover "
+         quality={70}
+         className="w-full h-full object-cover"
         />
        </button>
       ))}
@@ -147,7 +147,7 @@ export default function ProductImageGallery({
        height={1600}
        src={images[lightboxIndex]}
        alt={`${productName} - Resim ${lightboxIndex + 1}`}
-       quality={100}
+       quality={70}
        className="max-w-full max-h-full object-contain"
       />
      </div>

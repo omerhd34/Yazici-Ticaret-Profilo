@@ -123,7 +123,7 @@ export default function ProductSection({ title, description, products, loading, 
         data-product-card
         className="shrink-0 w-[calc(100vw-2rem)] sm:w-[calc(50vw-2rem)] md:w-[calc(33.333vw-2rem)] lg:w-[calc(25vw-2.5rem)] xl:w-[calc(25vw-3rem)] snap-start"
        >
-        <ProductCard product={product} />
+        <ProductCard product={product} priority={index < 4} />
        </div>
       ))}
      </div>

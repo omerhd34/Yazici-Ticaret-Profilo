@@ -85,7 +85,8 @@ export default function ProductAllFeatures({ product, selectedColor = null }) {
    const colorName = typeof color === 'object' ? color.name : color;
    return colorName;
   }).join(", ");
-  productFeaturesItems.push({ key: "Renkler", value: colorsText });
+  const renkLabel = displayProduct.colors.length === 1 ? "Renk" : "Renkler";
+  productFeaturesItems.push({ key: renkLabel, value: colorsText });
  }
  if (displayProduct.tags && displayProduct.tags.length > 0) {
   productFeaturesItems.push({ key: "Etiketler", value: displayProduct.tags.join(", ") });
@@ -175,29 +176,49 @@ export default function ProductAllFeatures({ product, selectedColor = null }) {
  const isTelevizyon = displayProduct.category && displayProduct.category.toLowerCase().trim() === "televizyon";
  const boyutlarCategoryName = isTelevizyon ? "Boyutlar" : "Boyutlar ve Ağırlık";
 
- if (boyutlarIndex !== -1) {
-  const existingBoyutlarItems = processedSpecifications[boyutlarIndex].items || [];
+ // "Genel Özellikler" işlendikten SONRA "Boyutlar ve Ağırlık" kategorisini yeniden bul
+ const boyutlarIndexAfterProcessing = processedSpecifications.findIndex(
+  spec => {
+   const categoryLower = spec.category && spec.category.toLowerCase().trim();
+   return categoryLower === "boyutlar" || categoryLower === "boyutlar ve ağırlık";
+  }
+ );
+
+ // "Genel Özellikler" kategorisinin index'ini bul (oluşturulduktan sonra)
+ const genelIndexAfterProcessing = processedSpecifications.findIndex(
+  spec => spec.category && spec.category.toLowerCase().trim() === "genel özellikler"
+ );
+
+ if (boyutlarIndexAfterProcessing !== -1) {
+  const existingBoyutlarItems = processedSpecifications[boyutlarIndexAfterProcessing].items || [];
   const existingKeys = existingBoyutlarItems.map(item => item.key);
   const newItems = boyutlarItems.filter(item => !existingKeys.includes(item.key));
-  if (newItems.length > 0) {
-   processedSpecifications[boyutlarIndex] = {
-    ...processedSpecifications[boyutlarIndex],
+
+  // Mevcut "Boyutlar ve Ağırlık" kategorisindeki tüm item'ları birleştir
+  const allBoyutlarItems = newItems.length > 0
+   ? [...existingBoyutlarItems, ...newItems]
+   : existingBoyutlarItems;
+
+  // Eğer "Genel Özellikler" kategorisi varsa, "Boyutlar ve Ağırlık" kategorisini kaldırıp ondan sonra ekle
+  if (genelIndexAfterProcessing !== -1) {
+   // Eski "Boyutlar ve Ağırlık" kategorisini kaldır
+   processedSpecifications.splice(boyutlarIndexAfterProcessing, 1);
+   // "Genel Özellikler" kategorisinden sonra ekle
+   processedSpecifications.splice(genelIndexAfterProcessing + 1, 0, {
     category: boyutlarCategoryName,
-    items: [...existingBoyutlarItems, ...newItems]
-   };
+    items: allBoyutlarItems
+   });
   } else {
-   // Başlığı güncelle
-   processedSpecifications[boyutlarIndex] = {
-    ...processedSpecifications[boyutlarIndex],
-    category: boyutlarCategoryName
+   // "Genel Özellikler" yoksa, sadece mevcut kategoriyi güncelle
+   processedSpecifications[boyutlarIndexAfterProcessing] = {
+    ...processedSpecifications[boyutlarIndexAfterProcessing],
+    category: boyutlarCategoryName,
+    items: allBoyutlarItems
    };
   }
  } else if (boyutlarItems.length > 0) {
-  const genelIndex = processedSpecifications.findIndex(
-   spec => spec.category && spec.category.toLowerCase().trim() === "genel özellikler"
-  );
-  if (genelIndex !== -1) {
-   processedSpecifications.splice(genelIndex + 1, 0, { category: boyutlarCategoryName, items: boyutlarItems });
+  if (genelIndexAfterProcessing !== -1) {
+   processedSpecifications.splice(genelIndexAfterProcessing + 1, 0, { category: boyutlarCategoryName, items: boyutlarItems });
   } else {
    processedSpecifications = [
     { category: boyutlarCategoryName, items: boyutlarItems },
@@ -207,13 +228,12 @@ export default function ProductAllFeatures({ product, selectedColor = null }) {
  }
 
  return (
-  <div className="mt-12 pt-12 border-t">
-   <h2 className="font-bold text-2xl mb-6 text-gray-900">Tüm Özellikler</h2>
+  <div className="mt-6 sm:mt-8 md:mt-12">
+   <h2 className="font-bold text-lg sm:text-xl md:text-2xl mb-3 sm:mb-4 md:mb-6 text-gray-900">Tüm Özellikler</h2>
 
    {/* Takım İçindeki Ürünler Seçimi */}
    {hasBundleProducts && (
-    <div className="mb-6">
-     <h3 className="font-semibold text-lg mb-3 text-gray-800">Takım İçeriği</h3>
+    <div className="mb-3 sm:mb-4 md:mb-6">
      <div className="flex flex-wrap gap-2">
       {productsInside.map((bundleProduct, index) => {
        const bundleProductName = bundleProduct.name || `Ürün ${index + 1}`;
@@ -224,7 +244,7 @@ export default function ProductAllFeatures({ product, selectedColor = null }) {
          onClick={() => {
           setSelectedBundleProductIndex(index);
          }}
-         className={`px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer ${isSelected
+         className={`px-2.5 py-1.5 sm:px-3 md:px-4 md:py-2 rounded-lg text-xs sm:text-sm md:text-base font-medium transition-colors cursor-pointer ${isSelected
           ? "bg-indigo-600 text-white"
           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
@@ -237,7 +257,7 @@ export default function ProductAllFeatures({ product, selectedColor = null }) {
     </div>
    )}
 
-   <div className="space-y-4">
+   <div className="space-y-2 sm:space-y-3 md:space-y-4">
     {processedSpecifications && processedSpecifications.length > 0 ? (
      processedSpecifications.map((spec, specIdx) => {
       const isExpanded = expandedCategories[specIdx] === true;
@@ -247,22 +267,22 @@ export default function ProductAllFeatures({ product, selectedColor = null }) {
        <div key={specIdx} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <button
          onClick={() => toggleCategory(specIdx)}
-         className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition cursor-pointer"
+         className="w-full flex items-center justify-between p-3 sm:p-3 md:p-4 hover:bg-gray-50 transition cursor-pointer"
         >
-         <h3 className="font-semibold text-lg text-gray-800">{spec.category}</h3>
+         <h3 className="font-semibold text-sm sm:text-base md:text-lg text-gray-800 pr-2">{spec.category}</h3>
          {isExpanded ? (
-          <HiChevronUp className="text-orange-500" size={20} />
+          <HiChevronUp className="text-orange-500 shrink-0" size={18} />
          ) : (
-          <HiChevronDown className="text-orange-500" size={20} />
+          <HiChevronDown className="text-orange-500 shrink-0" size={18} />
          )}
         </button>
         {isExpanded && items && items.length > 0 && (
          <div className="border-t border-gray-200">
           <dl className="divide-y divide-gray-100">
            {items.map((item, itemIdx) => (
-            <div key={itemIdx} className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 hover:bg-gray-50 transition">
-             <dt className="font-semibold text-gray-700">{item.key}</dt>
-             <dd className="text-gray-800">
+            <div key={itemIdx} className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4 p-3 sm:p-3 md:p-4 hover:bg-gray-50 transition">
+             <dt className="font-semibold text-xs sm:text-sm md:text-base text-gray-700">{item.key}</dt>
+             <dd className="text-xs sm:text-sm md:text-base text-gray-800 wrap-break-words">
               {item.isLink ? (
                <a
                 href={item.value}
@@ -285,8 +305,8 @@ export default function ProductAllFeatures({ product, selectedColor = null }) {
       );
      })
     ) : (
-     <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-      <p className="text-gray-600 text-sm">
+     <div className="p-3 sm:p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <p className="text-gray-600 text-xs sm:text-xs md:text-sm">
        {selectedColorObj ? (
         <>Bu renk için henüz özellik bilgisi eklenmemiş.</>
        ) : (

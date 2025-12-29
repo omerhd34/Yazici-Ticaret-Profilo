@@ -1,18 +1,17 @@
 "use client";
 import ProductCard from "@/app/components/ui/ProductCard";
-import { getProductUrl } from "@/app/utils/productUrl";
 
 export default function CategoryProducts({ loading, products, sortBy, onClearFilters }) {
  if (loading) {
   return (
-   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
     {[...Array(9)].map((_, i) => (
      <div
       key={i}
       className="bg-white rounded-xl overflow-hidden shadow-sm animate-pulse"
      >
       <div className="aspect-3/4 bg-gray-200"></div>
-      <div className="p-4 space-y-3">
+      <div className="p-3 sm:p-4 space-y-3">
        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
       </div>
@@ -24,11 +23,11 @@ export default function CategoryProducts({ loading, products, sortBy, onClearFil
 
  if (products.length === 0) {
   return (
-   <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-    <p className="text-gray-500 text-lg">Ürün bulunamadı</p>
+   <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8 md:p-12 text-center">
+    <p className="text-gray-500 text-base sm:text-lg">Ürün bulunamadı</p>
     <button
      onClick={onClearFilters}
-     className="mt-4 text-indigo-600 hover:text-indigo-800 font-semibold"
+     className="mt-4 text-sm sm:text-base text-indigo-600 hover:text-indigo-800 font-semibold"
     >
      Filtreleri Temizle
     </button>
@@ -104,9 +103,10 @@ export default function CategoryProducts({ loading, products, sortBy, onClearFil
  }
 
  return (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-   {sortedProducts.map((product) => {
-    return <ProductCard key={product._id} product={product} />;
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 items-stretch">
+   {sortedProducts.map((product, index) => {
+    // İlk 6 ürün için priority=true (above the fold için LCP optimizasyonu)
+    return <ProductCard key={product._id} product={product} priority={index < 6} />;
    })}
   </div>
  );

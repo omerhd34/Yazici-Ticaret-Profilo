@@ -549,14 +549,14 @@ export default function ProductImportantFeatures({ product, selectedColor = null
 
  // Grid class'ını ürün tipine göre belirle
  const gridClass = isAirConditionerIndoorUnit
-  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6"
+  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 p-4 sm:p-5 md:p-6"
   : isAirConditionerOutdoorUnit
-   ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6"
-   : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6";
+   ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 p-4 sm:p-5 md:p-6"
+   : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 p-4 sm:p-5 md:p-6";
 
  return (
-  <div className="mt-12 pt-12 border-t">
-   <h2 className="font-bold text-2xl mb-6 text-gray-900">Önemli Özellikler</h2>
+  <div className="mt-6 sm:mt-8 md:mt-12 pt-6 sm:pt-8 md:pt-12 border-t">
+   <h2 className="font-bold text-xl sm:text-2xl mb-4 sm:mb-5 md:mb-6 text-gray-900">Önemli Özellikler</h2>
 
    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
     <div className={gridClass}>
@@ -569,8 +569,8 @@ export default function ProductImportantFeatures({ product, selectedColor = null
 
       return (
        <div key={index} className={`flex flex-col ${borderClass}`}>
-        <dt className="font-semibold text-indigo-900 text-sm mb-1">{feature.key}</dt>
-        <dd className="text-gray-600 font-medium">{feature.value}</dd>
+        <dt className="font-semibold text-indigo-900 text-xs sm:text-sm mb-1">{feature.key}</dt>
+        <dd className="text-gray-600 font-medium text-xs sm:text-sm md:text-base break-words">{feature.value}</dd>
        </div>
       );
      })}

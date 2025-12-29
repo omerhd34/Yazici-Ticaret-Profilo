@@ -223,15 +223,15 @@ const Header = () => {
      <Link href="/" className="flex items-center group shrink-0" onClick={closeMenu}>
       <div className="flex flex-col leading-tight">
        <div className="block max-[450px]:hidden">
-        <span className="font-[Racing_Sans_One] text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-[0.15em] md:tracking-[0.2em] lg:tracking-[0.25em] text-indigo-600 transition-colors duration-1000 ease-out group-hover:text-blue-900 select-none">
+        <span className="font-[Open_Sans] text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-[0.15em] md:tracking-[0.2em] lg:tracking-[0.25em] text-indigo-600 transition-colors duration-1000 ease-out group-hover:text-blue-900 select-none">
          YAZICI TİCARET
         </span>
        </div>
        <div className="hidden max-[450px]:flex flex-col">
-        <span className="font-[Racing_Sans_One] text-xl font-extrabold tracking-[0.15em] text-indigo-600 transition-colors duration-1000 ease-out group-hover:text-blue-900 select-none">
+        <span className="font-[Open_Sans] text-xl font-extrabold tracking-[0.15em] text-indigo-600 transition-colors duration-1000 ease-out group-hover:text-blue-900 select-none">
          YAZICI
         </span>
-        <span className="font-[Racing_Sans_One] text-xl font-extrabold tracking-[0.15em] text-indigo-600 transition-colors duration-1000 ease-out group-hover:text-blue-900 select-none">
+        <span className="font-[Open_Sans] text-xl font-extrabold tracking-[0.15em] text-indigo-600 transition-colors duration-1000 ease-out group-hover:text-blue-900 select-none">
          TİCARET
         </span>
        </div>
@@ -286,7 +286,7 @@ const Header = () => {
 
    <nav className="hidden md:block border-t relative border-gray-100 bg-gray-100 z-40">
     <div className="container mx-auto px-4">
-     <ul className="flex items-center gap-4 md:gap-6 lg:gap-8 xl:gap-10 text-[14px] font-bold text-slate-700 tracking-tight">
+     <ul className="flex items-center gap-4 md:gap-6 lg:gap-8 xl:gap-10 text-[15px] font-bold text-slate-700 tracking-tight">
       {MENU_ITEMS.map((item) => (
        <li
         key={item.path}
@@ -353,12 +353,12 @@ const Header = () => {
              </Link>
             </div>
 
-            <div className="w-2/5 hidden lg:block">
+            <div className="w-1/3 hidden lg:block">
              {(() => {
               const activeMenuItem = MENU_ITEMS.find(item => item.name === activeMenu);
               const bannerImage = activeMenuItem?.bannerImg || "/products/beyaz-esya.webp";
               return (
-               <div className="relative h-full min-h-[250px] rounded-xl overflow-hidden group/card">
+               <div className="relative h-full min-h-[200px] rounded-xl overflow-hidden group/card">
                 <Image
                  src={bannerImage}
                  alt={activeMenu || "Yeni Sezon"}
@@ -369,8 +369,8 @@ const Header = () => {
                  priority={false}
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent flex flex-col justify-end p-6">
-                 <span className="text-white text-xs font-bold uppercase mb-2 bg-indigo-600 w-fit px-2 py-1 rounded">Yeni Sezon</span>
-                 <h4 className="text-white font-bold text-xl leading-tight">Yaz Koleksiyonunu Keşfet</h4>
+                 <span className="text-white text-xs font-bold uppercase mb-2 bg-indigo-600 w-fit px-2 py-1 rounded">Özel Fırsatlar</span>
+                 <h4 className="text-white font-bold text-xl leading-tight">Koleksiyonumuzu Keşfedin</h4>
                 </div>
                </div>
               );
@@ -390,108 +390,180 @@ const Header = () => {
    {isMobileMenuOpen && (
     <>
      <div
-      className="md:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity duration-300"
+      className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300 ease-out"
       onClick={closeMenu}
      />
      <div className="md:hidden fixed inset-y-0 left-0 w-full max-w-sm bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out overflow-y-auto">
-      <div className="sticky top-0 bg-white border-b border-slate-200 z-10">
-       <div className="flex items-center justify-between px-5 py-4">
-        <h2 className="text-lg font-bold text-slate-900">Ürünler</h2>
+      {/* Header */}
+      <div className="sticky top-0 bg-linear-to-r from-indigo-600 to-purple-600 text-white z-10 shadow-lg">
+       <div className="flex items-center justify-between px-4 sm:px-5 py-4">
+        <div className="flex items-center gap-2">
+         <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+          <HiMenu size={18} className="text-white" />
+         </div>
+         <h2 className="text-lg font-bold text-white">Menü</h2>
+        </div>
         <button
          onClick={closeMenu}
-         className="p-2 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+         className="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 cursor-pointer active:scale-95"
          aria-label="Menüyü Kapat"
         >
-         <HiX size={24} className="text-slate-600" />
+         <HiX size={22} className="text-white" />
         </button>
        </div>
       </div>
 
-      <nav className="py-2">
-       <ul className="flex flex-col">
-        {MENU_ITEMS.filter(item => !item.isSpecial).map((item) => (
-         <li key={item.path} className="border-b border-slate-100 last:border-none">
-          {item.subCategories ? (
-           <div className="flex flex-col">
-            <button
-             onClick={() => toggleMobileSubmenu(item.name)}
-             className="flex items-center justify-between px-5 py-4 font-bold text-slate-800 hover:bg-slate-50 transition-colors w-full text-left group cursor-pointer"
-            >
-             <span>{item.name}</span>
-             <HiChevronDown
-              size={20}
-              className={`text-slate-400 transition-transform duration-300 ${expandedMobileMenu === item.name ? 'rotate-180' : ''
+      <nav className="py-2 bg-gray-50">
+       {/* Ana Kategoriler */}
+       <div className="bg-white mb-2">
+        <div className="px-4 sm:px-5 py-3 border-b border-gray-100">
+         <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Kategoriler</h3>
+        </div>
+        <ul className="flex flex-col">
+         {MENU_ITEMS.filter(item => !item.isSpecial).map((item, index) => (
+          <li key={item.path} className="border-b border-gray-100 last:border-none">
+           {item.subCategories ? (
+            <div className="flex flex-col">
+             <button
+              onClick={() => toggleMobileSubmenu(item.name)}
+              className="flex items-center justify-between px-4 sm:px-5 py-4 font-semibold text-gray-900 hover:bg-indigo-50 active:bg-indigo-100 transition-all duration-200 w-full text-left group cursor-pointer"
+             >
+              <span className="text-base">{item.name}</span>
+              <div className="flex items-center gap-2">
+               <span className="text-xs text-gray-400 font-normal">
+                {item.subCategories.length} alt kategori
+               </span>
+               <HiChevronDown
+                size={20}
+                className={`text-gray-400 group-hover:text-indigo-600 transition-all duration-300 ${expandedMobileMenu === item.name ? 'rotate-180 text-indigo-600' : ''
+                 }`}
+               />
+              </div>
+             </button>
+             <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedMobileMenu === item.name
+               ? 'max-h-[1000px] opacity-100'
+               : 'max-h-0 opacity-0'
                }`}
-             />
-            </button>
-            <div
-             className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedMobileMenu === item.name
-              ? 'max-h-[1000px] opacity-100'
-              : 'max-h-0 opacity-0'
-              }`}
-            >
-             <ul className="bg-linear-to-b from-slate-50 to-white px-5 py-3 space-y-1">
-              {item.subCategories.map((sub) => (
-               <li key={sub.path}>
+             >
+              <ul className="bg-linear-to-b from-gray-50 to-white px-4 sm:px-5 py-3 space-y-1">
+               {item.subCategories.map((sub, subIndex) => (
+                <li key={sub.path}>
+                 <Link
+                  href={sub.path}
+                  className="block py-2.5 px-3 text-sm text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 font-medium hover:translate-x-1 active:scale-95"
+                  onClick={closeMenu}
+                 >
+                  {sub.name}
+                 </Link>
+                </li>
+               ))}
+               <li className="pt-2 mt-2 border-t border-gray-200">
                 <Link
-                 href={sub.path}
-                 className="block py-2.5 px-3 text-sm text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 font-medium"
+                 href={item.path}
+                 className="flex items-center justify-between gap-2 py-2.5 px-3 text-sm font-bold text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all duration-200 group/link active:scale-95"
                  onClick={closeMenu}
                 >
-                 {sub.name}
+                 <span>Tüm {item.name} Ürünleri</span>
+                 <HiArrowRight size={16} className="group-hover/link:translate-x-1 transition-transform" />
                 </Link>
                </li>
-              ))}
-              <li className="pt-2">
-               <Link
-                href={item.path}
-                className="flex items-center gap-2 py-2.5 px-3 text-sm font-bold text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200"
-                onClick={closeMenu}
-               >
-                Tüm {item.name} Ürünleri
-                <HiArrowRight size={16} />
-               </Link>
-              </li>
-             </ul>
+              </ul>
+             </div>
             </div>
-           </div>
-          ) : (
+           ) : (
+            <Link
+             href={item.path}
+             className="block px-4 sm:px-5 py-4 font-semibold text-gray-900 hover:bg-indigo-50 active:bg-indigo-100 transition-all duration-200 text-base"
+             onClick={closeMenu}
+            >
+             {item.name}
+            </Link>
+           )}
+          </li>
+         ))}
+        </ul>
+       </div>
+
+       {/* Özel Kategoriler ve Favoriler */}
+       <div className="bg-white px-4 sm:px-5 py-4">
+        <div className="mb-3">
+         <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Özel Fırsatlar</h3>
+        </div>
+        <div className="flex flex-col gap-2.5">
+         {MENU_ITEMS.filter(item => item.isSpecial).map((item) => {
+          const getItemStyles = () => {
+           if (item.name === "Yeniler") {
+            return {
+             textColor: "text-red-600",
+             bgFrom: "from-red-50",
+             bgTo: "to-red-50/50",
+             hoverFrom: "hover:from-red-100",
+             hoverTo: "hover:to-red-100/50",
+             borderColor: "border-red-100",
+             iconBg: "bg-red-100"
+            };
+           } else if (item.name === "İndirimler") {
+            return {
+             textColor: "text-green-600",
+             bgFrom: "from-green-50",
+             bgTo: "to-green-50/50",
+             hoverFrom: "hover:from-green-100",
+             hoverTo: "hover:to-green-100/50",
+             borderColor: "border-green-100",
+             iconBg: "bg-green-100"
+            };
+           } else if (item.name === "Kampanyalar") {
+            return {
+             textColor: "text-blue-600",
+             bgFrom: "from-blue-50",
+             bgTo: "to-blue-50/50",
+             hoverFrom: "hover:from-blue-100",
+             hoverTo: "hover:to-blue-100/50",
+             borderColor: "border-blue-100",
+             iconBg: "bg-blue-100"
+            };
+           }
+           return {
+            textColor: "text-red-600",
+            bgFrom: "from-red-50",
+            bgTo: "to-red-50/50",
+            hoverFrom: "hover:from-red-100",
+            hoverTo: "hover:to-red-100/50",
+            borderColor: "border-red-100",
+            iconBg: "bg-red-100"
+           };
+          };
+          const styles = getItemStyles();
+          return (
            <Link
+            key={item.path}
             href={item.path}
-            className="block px-5 py-4 font-bold text-slate-800 hover:bg-slate-50 transition-colors"
+            className={`flex items-center gap-3 px-4 py-3.5 font-bold ${styles.textColor} bg-linear-to-r ${styles.bgFrom} ${styles.bgTo} ${styles.hoverFrom} ${styles.hoverTo} rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 border ${styles.borderColor}`}
             onClick={closeMenu}
            >
-            {item.name}
+            <div className={`w-10 h-10 ${styles.iconBg} rounded-lg flex items-center justify-center shrink-0`}>
+             {item.name === "Yeniler" && <HiGift size={20} className="text-red-600" />}
+             {item.name === "İndirimler" && <HiTag size={20} className="text-green-600" />}
+             {item.name === "Kampanyalar" && <HiGift size={20} className="text-blue-600" />}
+            </div>
+            <span className="text-base">{item.name}</span>
            </Link>
-          )}
-         </li>
-        ))}
-       </ul>
-
-       <div className="px-5 py-4 mt-4 border-t border-slate-200">
-        <div className="flex flex-col gap-2.5">
-         {MENU_ITEMS.filter(item => item.isSpecial).map((item) => (
-          <Link
-           key={item.path}
-           href={item.path}
-           className="flex items-center justify-left gap-2 px-4 py-3 font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-           onClick={closeMenu}
-          >
-           {item.name === "Yeniler" && <HiGift size={18} className="text-red-600" />}
-           {item.name === "İndirimler" && <HiTag size={18} className="text-red-600" />}
-           {item.name === "Kampanyalar" && <HiGift size={18} className="text-red-600" />}
-           <span>{item.name}</span>
-          </Link>
-         ))}
+          );
+         })}
          <Link
           href="/favoriler"
-          className="flex items-center justify-left gap-2 px-4 py-3 font-bold text-pink-600 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors"
+          className="flex items-center justify-between gap-3 px-4 py-3.5 font-bold text-amber-600 bg-linear-to-r from-amber-50 to-amber-50/50 hover:from-amber-100 hover:to-amber-100/50 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 border border-amber-100"
           onClick={closeMenu}
          >
-          <HiHeart size={18} className="text-pink-600" />
-          <span>Favoriler</span>
+          <div className="flex items-center gap-3">
+           <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center shrink-0">
+            <HiHeart size={20} className="text-amber-500" />
+           </div>
+           <span className="text-base">Favoriler</span>
+          </div>
           {isClient && getFavoriteCount() > 0 && (
-           <span className="ml-auto bg-pink-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+           <span className="bg-amber-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm min-w-[24px] text-center">
             {getFavoriteCount() >= 9 ? "9+" : getFavoriteCount()}
            </span>
           )}

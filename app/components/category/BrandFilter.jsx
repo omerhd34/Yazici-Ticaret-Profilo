@@ -4,7 +4,7 @@ export default function BrandFilter({ availableBrands, selectedBrands, onBrandTo
  if (availableBrands.length === 0) return null;
 
  return (
-  <div className={isMobile ? "" : "mb-6"}>
+  <div className={isMobile ? "mb-6" : "mb-4 pb-4 border-b"}>
    <h4 className="font-semibold mb-4">Marka</h4>
    <div className={isMobile ? "space-y-2" : "space-y-2 max-h-48 overflow-y-auto"}>
     {availableBrands.map((brand) => (

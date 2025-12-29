@@ -53,29 +53,29 @@ MENU_ITEMS.forEach((item) => {
 });
 
 const categoryBrands = {
- "Buzdolabı": ["Profilo"],
- "Kurutma Makinesi": ["Profilo", "Electrolux", "Grundig"],
- "Set Üstü Ocak": ["Profilo", "Simfer", "Ferre"],
- "Derin Dondurucu": ["Profilo"],
- "Bulaşık Makinesi": ["Profilo", "Electrolux", "Grundig"],
- "Mikrodalga Fırın": ["Profilo", "Simfer"],
- "Çamaşır Makinesi": ["Profilo", "Electrolux", "Grundig"],
- "Fırın": ["Profilo", "Simfer"],
+ "Buzdolabı": ["Profilo", "LG"],
+ "Kurutma Makinesi": ["Profilo", "LG"],
+ "Set Üstü Ocak": ["Profilo", "LG"],
+ "Derin Dondurucu": ["Profilo", "LG"],
+ "Bulaşık Makinesi": ["Profilo", "LG"],
+ "Mikrodalga Fırın": ["Profilo", "LG"],
+ "Çamaşır Makinesi": ["Profilo", "LG"],
+ "Fırın": ["Profilo", "LG"],
 
- "Televizyon": ["Profilo", "Samsung", "LG", "Philips", "Grundig"],
+ "Televizyon": ["Profilo", "LG"],
 
- "Elektrikli Süpürge": ["Profilo", "Philips", "Miele", "Arnica", "Karcher"],
+ "Elektrikli Süpürge": ["Profilo", "LG"],
 
- "Ankastre Fırın": ["Profilo"],
- "Ankastre Mikrodalga Fırın": ["Profilo"],
- "Ankastre Ocak": ["Profilo"],
- "Ankastre Aspiratör / Davlumbaz": ["Profilo"],
- "Ankastre Bulaşık Makinesi": ["Profilo"],
- "Ankastre Setler": ["Profilo"],
+ "Ankastre Fırın": ["Profilo", "LG"],
+ "Ankastre Mikrodalga Fırın": ["Profilo", "LG"],
+ "Ankastre Ocak": ["Profilo", "LG"],
+ "Ankastre Aspiratör / Davlumbaz": ["Profilo", "LG"],
+ "Ankastre Bulaşık Makinesi": ["Profilo", "LG"],
+ "Ankastre Setler": ["Profilo", "LG"],
 
- "Klima": ["Profilo", "Airfel", "Daikin", "Mitsubishi"],
- "Su Sebili ve Su Arıtma": ["Profilo"],
- "Türk Kahve Makineleri": ["Profilo"],
+ "Klima": ["Profilo", "LG"],
+ "Su Sebili ve Su Arıtma": ["Profilo", "LG"],
+ "Türk Kahve Makineleri": ["Profilo", "LG"],
 };
 
 export default function ProductFormModal({ show, editingProduct, onClose, onSuccess, onError }) {

@@ -6,19 +6,7 @@ import { HiShoppingBag } from "react-icons/hi";
 export default function BrandLogosSection() {
  const brands = [
   { name: "Profilo", src: "/brands/profilo.png" },
-  { name: "Philips", src: "/brands/philips.png" },
-  { name: "Miele", src: "/brands/miele.svg" },
-  { name: "Arnica", src: "/brands/arnica.png" },
-  { name: "Karcher", src: "/brands/karcher.png" },
   { name: "LG", src: "/brands/lg.png" },
-  { name: "Samsung", src: "/brands/samsung.png" },
-  { name: "Grundig", src: "/brands/grundig.png" },
-  { name: "Electrolux", src: "/brands/electrolux.png" },
-  { name: "Simfer", src: "/brands/simfer.png" },
-  { name: "Ferre", src: "/brands/ferre.png" },
-  { name: "Daikin", src: "/brands/daikin.png" },
-  { name: "Mitsubishi", src: "/brands/mitsubishi.png" },
-  { name: "Airfel", src: "/brands/airfel.png" },
  ];
 
  const [imageErrors, setImageErrors] = useState({});
@@ -43,24 +31,23 @@ export default function BrandLogosSection() {
      </p>
     </div>
 
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4 sm:gap-6 md:gap-8">
+    <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8">
      {brands.map((brand, index) => {
       const logoPath = brand.src || `/logos/${brand.name.toLowerCase()}.png`;
       const hasError = imageErrors[brand.name];
-
       return (
        <div
         key={index}
-        className="flex items-center justify-center p-4 sm:p-6 bg-gray-100 rounded-xl border border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all duration-300 group"
+        className="flex items-center justify-center p-4 sm:p-6 bg-white rounded-2xl border border-gray-100 shadow-sm hover:border-indigo-400 hover:shadow-xl transition-all duration-500 group w-36 h-28 sm:w-52 sm:h-44"
        >
-        <div className="relative w-full h-12 sm:h-16 flex items-center justify-center">
+        <div className="relative w-full h-full flex items-center justify-center p-2">
          {!hasError && logoPath ? (
           <Image
            src={logoPath}
            alt={brand.name}
-           width={120}
-           height={60}
-           className="object-contain max-w-full max-h-full opacity-70 group-hover:opacity-100 transition-opacity"
+           width={240}
+           height={140}
+           className="object-contain max-w-full max-h-full opacity-90 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-110"
            onError={() => handleImageError(brand.name)}
           />
          ) : (
