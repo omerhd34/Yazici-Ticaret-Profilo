@@ -56,8 +56,11 @@ export default function ComparisonWidget() {
   return null;
  }
 
- // Sadece kategori sayfalarında widget'ı göster
- if (!pathname?.startsWith("/kategori")) {
+ // Admin, giriş ve diğer bazı sayfalarda widget'ı gösterme
+ if (pathname?.startsWith("/admin") ||
+  pathname?.startsWith("/giris") ||
+  pathname?.startsWith("/sepet") ||
+  pathname?.startsWith("/odeme")) {
   return null;
  }
 
