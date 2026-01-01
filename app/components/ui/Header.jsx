@@ -3,18 +3,42 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useLayoutEffect } from "react";
 import { useRouter } from "next/navigation";
-import { HiSearch, HiUser, HiHeart, HiMenu, HiX, HiPhone, HiChevronDown, HiArrowRight, HiClipboardList, HiTruck, HiTag, HiGift } from "react-icons/hi";
-import { FaShoppingCart } from "react-icons/fa";
+import { HiSearch, HiUser, HiHeart, HiMenu, HiX, HiPhone, HiChevronDown, HiArrowRight, HiClipboardList, HiTruck, HiTag, HiGift, HiHome, HiCube } from "react-icons/hi";
+import { FaShoppingCart, FaTint, FaTv, FaFire, FaSink, FaFan, FaFilter } from "react-icons/fa";
+import { MdKitchen, MdCoffeeMaker, MdOutlineKitchen, MdOutlineLocalLaundryService } from "react-icons/md";
+import { GiWashingMachine, GiVacuumCleaner, GiGasStove } from "react-icons/gi";
+import { TbAirConditioning } from "react-icons/tb";
 import { useCart } from "@/context/CartContext";
 import axiosInstance from "@/lib/axios";
 import { getProductUrl } from "@/app/utils/productUrl";
 import ProductRequestModal from "@/app/components/product/ProductRequestModal";
 import { MENU_ITEMS } from "@/app/utils/menuItems";
-
+import { PiOvenDuotone, PiOvenLight } from "react-icons/pi";
 const HEADER_MESSAGES = [
  "Tüm Türkiye'ye nakliye ve montaj hizmeti !",
  "Bursa'ya özel ücretsiz kargo fırsatı !"
 ];
+
+const iconMap = {
+ HiHome,
+ HiCube,
+ FaTint,
+ FaTv,
+ FaFire,
+ MdKitchen,
+ GiWashingMachine,
+ FaSink,
+ TbAirConditioning,
+ FaFan,
+ FaFilter,
+ GiVacuumCleaner,
+ MdCoffeeMaker,
+ PiOvenLight,
+ MdOutlineKitchen,
+ PiOvenDuotone,
+ MdOutlineLocalLaundryService,
+ GiGasStove,
+};
 
 const Header = () => {
  const router = useRouter();
@@ -219,7 +243,7 @@ const Header = () => {
    </div>
 
    <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 lg:py-5">
-    <div className="flex justify-between items-center gap-3 sm:gap-4 lg:gap-6">
+    <div className="flex justify-between items-center gap-2 sm:gap-4 lg:gap-6">
      <Link href="/" className="flex items-center group shrink-0" onClick={closeMenu}>
       <div className="flex flex-col leading-tight">
        <div className="block max-[450px]:hidden">
@@ -237,22 +261,22 @@ const Header = () => {
        </div>
       </div>
      </Link>
-     <div className="flex items-center gap-0 md:gap-2 lg:gap-3 xl:gap-4 text-slate-700">
+     <div className="flex items-center md:gap-2 lg:gap-3 xl:gap-4 text-slate-700">
       <button
        onClick={() => setIsSearchModalOpen(true)}
-       className="search-icon-button flex flex-col items-center gap-1 group hover:bg-slate-50 p-2 rounded-lg transition cursor-pointer"
+       className="search-icon-button flex flex-col items-center group hover:bg-slate-50 p-1 sm:p-2 rounded-lg transition cursor-pointer"
       >
        <HiSearch size={22} className="group-hover:text-indigo-600 transition" />
       </button>
 
       <button
        onClick={handleHesabimClick}
-       className="flex flex-col items-center gap-1 group hover:bg-slate-50 p-2 rounded-lg transition cursor-pointer"
+       className="flex flex-col items-center group hover:bg-slate-50 p-1 sm:p-2 rounded-lg transition cursor-pointer"
       >
        <HiUser size={22} className="group-hover:text-indigo-600 transition" />
       </button>
 
-      <Link href="/sepet" className="flex flex-col items-center gap-1 group relative hover:bg-slate-50 p-2 rounded-lg transition">
+      <Link href="/sepet" className="flex flex-col items-center group relative hover:bg-slate-50 p-1 sm:p-2 rounded-lg transition">
        <div className="relative">
         <FaShoppingCart size={22} className="group-hover:text-indigo-600 transition" />
         {isClient && getCartItemCount() > 0 && (
@@ -263,7 +287,7 @@ const Header = () => {
        </div>
       </Link>
 
-      <Link href="/favoriler" className="flex flex-col items-center gap-1 group relative hover:bg-slate-50 p-2 rounded-lg transition">
+      <Link href="/favoriler" className="flex flex-col items-center group relative hover:bg-slate-50 p-1 sm:p-2 rounded-lg transition">
        <div className="relative">
         <HiHeart size={22} className="group-hover:text-indigo-600 transition" />
         {isClient && getFavoriteCount() > 0 && (
@@ -275,7 +299,7 @@ const Header = () => {
       </Link>
 
       <button
-       className="md:hidden text-slate-900 p-2 cursor-pointer"
+       className="md:hidden text-slate-900 p-1 sm:p-2 cursor-pointer"
        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
       >
        {isMobileMenuOpen ? <HiX size={24} /> : <HiMenu size={24} />}
@@ -297,12 +321,20 @@ const Header = () => {
         <Link
          href={item.path}
          onClick={closeMenu}
-         className={`flex items-center gap-1 transition-colors py-1 border-b-2 border-transparent ${item.isSpecial
+         className={`flex items-center gap-2 transition-colors py-1 border-b-2 border-transparent ${item.isSpecial
           ? "text-red-600 hover:border-red-600"
           : "hover:text-indigo-600 hover:border-indigo-600"
           } ${activeMenu === item.name ? "text-indigo-600 border-indigo-600" : ""}`}
          suppressHydrationWarning
         >
+         {item.icon && iconMap[item.icon] && (
+          <span className="shrink-0">
+           {(() => {
+            const IconComponent = iconMap[item.icon];
+            return <IconComponent size={18} className="opacity-70" />;
+           })()}
+          </span>
+         )}
          {item.name}
          {item.subCategories && (
           <HiChevronDown
@@ -335,8 +367,16 @@ const Header = () => {
                 <Link
                  href={subItem.path}
                  onClick={closeMenu}
-                 className="text-slate-500 hover:text-indigo-600 hover:translate-x-1 transition-all duration-200 text-[14px] flex items-center justify-between group/link"
+                 className="text-slate-500 hover:text-indigo-600 hover:translate-x-1 transition-all duration-200 text-[14px] flex items-center gap-2 group/link"
                 >
+                 {subItem.icon && iconMap[subItem.icon] && (
+                  <span className="shrink-0">
+                   {(() => {
+                    const IconComponent = iconMap[subItem.icon];
+                    return <IconComponent size={16} className="opacity-60 group-hover/link:opacity-100" />;
+                   })()}
+                  </span>
+                 )}
                  {subItem.name}
                 </Link>
                </li>
@@ -427,7 +467,17 @@ const Header = () => {
               onClick={() => toggleMobileSubmenu(item.name)}
               className="flex items-center justify-between px-4 sm:px-5 py-4 font-semibold text-gray-900 hover:bg-indigo-50 active:bg-indigo-100 transition-all duration-200 w-full text-left group cursor-pointer"
              >
-              <span className="text-base">{item.name}</span>
+              <div className="flex items-center gap-3">
+               {item.icon && iconMap[item.icon] && (
+                <span className="shrink-0">
+                 {(() => {
+                  const IconComponent = iconMap[item.icon];
+                  return <IconComponent size={20} className="text-indigo-600 opacity-70" />;
+                 })()}
+                </span>
+               )}
+               <span className="text-base">{item.name}</span>
+              </div>
               <div className="flex items-center gap-2">
                <span className="text-xs text-gray-400 font-normal">
                 {item.subCategories.length} alt kategori
@@ -450,9 +500,17 @@ const Header = () => {
                 <li key={sub.path}>
                  <Link
                   href={sub.path}
-                  className="block py-2.5 px-3 text-sm text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 font-medium hover:translate-x-1 active:scale-95"
+                  className="flex items-center gap-2 py-2.5 px-3 text-sm text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 font-medium hover:translate-x-1 active:scale-95"
                   onClick={closeMenu}
                  >
+                  {sub.icon && iconMap[sub.icon] && (
+                   <span className="shrink-0">
+                    {(() => {
+                     const IconComponent = iconMap[sub.icon];
+                     return <IconComponent size={18} className="text-indigo-600 opacity-70" />;
+                    })()}
+                   </span>
+                  )}
                   {sub.name}
                  </Link>
                 </li>
@@ -473,9 +531,17 @@ const Header = () => {
            ) : (
             <Link
              href={item.path}
-             className="block px-4 sm:px-5 py-4 font-semibold text-gray-900 hover:bg-indigo-50 active:bg-indigo-100 transition-all duration-200 text-base"
+             className="flex items-center gap-3 px-4 sm:px-5 py-4 font-semibold text-gray-900 hover:bg-indigo-50 active:bg-indigo-100 transition-all duration-200 text-base"
              onClick={closeMenu}
             >
+             {item.icon && iconMap[item.icon] && (
+              <span className="shrink-0">
+               {(() => {
+                const IconComponent = iconMap[item.icon];
+                return <IconComponent size={20} className="text-indigo-600 opacity-70" />;
+               })()}
+              </span>
+             )}
              {item.name}
             </Link>
            )}

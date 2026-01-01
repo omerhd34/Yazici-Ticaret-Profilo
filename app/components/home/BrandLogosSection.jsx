@@ -23,7 +23,7 @@ export default function BrandLogosSection() {
      <div className="flex items-center justify-center gap-3 mb-4">
       <HiShoppingBag className="text-indigo-600" size={32} />
       <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">
-       Sattığımız Markalar
+       Satılan Markalar
       </h2>
      </div>
      <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto">
