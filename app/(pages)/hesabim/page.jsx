@@ -14,6 +14,8 @@ import ReturnOrderModal from "@/app/components/account/ReturnOrderModal";
 import CancelReturnModal from "@/app/components/account/CancelReturnModal";
 import AddressesTab from "@/app/components/account/AddressesTab";
 import AddressModal from "@/app/components/account/AddressModal";
+import CardsTab from "@/app/components/account/CardsTab";
+import CardModal from "@/app/components/account/CardModal";
 import SettingsTab from "@/app/components/account/SettingsTab";
 import DeleteConfirmModal from "@/app/components/account/DeleteConfirmModal";
 import DeleteAccountModal from "@/app/components/account/DeleteAccountModal";
@@ -37,14 +39,14 @@ export default function Hesabim() {
   didInitTabFromUrl.current = true;
   if (!tab) return;
 
-  const allowedTabs = new Set(["profil", "siparisler", "favoriler", "adresler", "urun-istekleri", "ayarlar"]);
+  const allowedTabs = new Set(["profil", "siparisler", "favoriler", "adresler", "kartlar", "urun-istekleri", "ayarlar"]);
   if (allowedTabs.has(tab) && tab !== activeTab) {
    setActiveTab(tab);
   }
  }, [searchParams, activeTab]);
 
  // Toast bildirim state'i
- const [toast, setToast] = useState({ show: false, message: "", type: "success" });  // type: "success" | "error"
+ const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
  // Silme onay modal state'i
  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, type: null, id: null }); // type: 'address'
@@ -127,7 +129,7 @@ export default function Hesabim() {
     // Cookie'yi client-side'dan da silmeyi dene
     document.cookie = 'user-session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;';
     document.cookie = 'user-session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Strict;';
-    // Custom event gönder
+    // Sepet/favoriler silinmez; kullanıcı tekrar giriş yaptığında kendi sepeti yüklenecek (cart_${userId})
     window.dispatchEvent(new Event('logout'));
    }
 
@@ -180,6 +182,20 @@ export default function Hesabim() {
  const [showAddressModal, setShowAddressModal] = useState(false);
  const [editingAddress, setEditingAddress] = useState(null);
  const [addressErrors, setAddressErrors] = useState({});
+
+ const [cards, setCards] = useState([]);
+ const [showCardModal, setShowCardModal] = useState(false);
+ const [editingCard, setEditingCard] = useState(null);
+ const [cardForm, setCardForm] = useState({
+  title: "",
+  cardNumber: "",
+  cardHolder: "",
+  month: "",
+  year: "",
+  cvc: "",
+  isDefault: false,
+ });
+ const [cardErrors, setCardErrors] = useState({});
  const [addressForm, setAddressForm] = useState({
   title: "",
   firstName: "",
@@ -331,6 +347,41 @@ export default function Hesabim() {
   }
  }, [currentUser, activeTab, fetchAddresses]);
 
+ const fetchCards = useCallback(async () => {
+  try {
+   const res = await axiosInstance.get("/api/user/cards");
+
+   const contentType = res.headers["content-type"];
+   if (!contentType || !contentType.includes("application/json")) {
+    setCards([]);
+    return;
+   }
+
+   const data = res.data;
+
+   if (data.success) {
+    const loadedCards = data.cards || [];
+    const sortedCards = [...loadedCards].sort((a, b) => {
+     if (a.isDefault && !b.isDefault) return -1;
+     if (!a.isDefault && b.isDefault) return 1;
+     return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+    setCards(sortedCards);
+   } else {
+    setCards([]);
+   }
+  } catch (error) {
+   setCards([]);
+   showToast("Kartlar yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin.", "error");
+  }
+ }, [showToast]);
+
+ useEffect(() => {
+  if (currentUser && activeTab === "kartlar") {
+   fetchCards();
+  }
+ }, [currentUser, activeTab, fetchCards]);
+
  const handleAddressSubmit = async (e) => {
   e.preventDefault();
 
@@ -456,6 +507,20 @@ export default function Hesabim() {
     await fetchAddresses();
    }
 
+   if (deleteConfirm.type === 'card') {
+    const res = await axiosInstance.delete(`/api/user/cards/${id}`);
+
+    const data = res.data;
+
+    if (!data.success) {
+     showToast(data.message || "Kart silinemedi!", "error");
+     return;
+    }
+
+    showToast("Kart silindi!", "success");
+    await fetchCards();
+   }
+
    setDeleteConfirm({ show: false, type: null, id: null });
   } catch (error) {
    showToast("Bir hata oluştu! Lütfen tekrar deneyin.", "error");
@@ -464,7 +529,6 @@ export default function Hesabim() {
 
  const handleEditAddress = (address) => {
   setEditingAddress(address);
-  // Geriye dönük uyumluluk için: eğer firstName/lastName yoksa fullName'den ayır
   let firstName = address.firstName || '';
   let lastName = address.lastName || '';
   if (!firstName && !lastName && address.fullName) {
@@ -485,6 +549,175 @@ export default function Hesabim() {
   setShowAddressModal(true);
  };
 
+ const handleCardSubmit = async (e) => {
+  e.preventDefault();
+
+  setCardErrors({});
+
+  // Validasyon
+  const errors = {};
+
+  if (!cardForm.title || !cardForm.title.trim()) {
+   errors.title = "Kart başlığı zorunludur!";
+  }
+
+  if (!editingCard) {
+   const cleanedCardNumber = cardForm.cardNumber.replace(/\s/g, "");
+
+   // Kart tipini belirle
+   const getCardType = (cardNumber) => {
+    if (!cardNumber || cardNumber.length === 0) return 'Kart';
+    const firstDigit = cardNumber[0];
+    const firstTwoDigits = cardNumber.substring(0, 2);
+    const firstFourDigits = cardNumber.substring(0, 4);
+
+    if (firstDigit === '4') return 'Visa';
+    if (firstTwoDigits >= '51' && firstTwoDigits <= '55') return 'Mastercard';
+    if (firstFourDigits >= '2221' && firstFourDigits <= '2720') return 'Mastercard';
+    if (firstFourDigits === '9792') return 'Troy';
+    if (firstTwoDigits === '65') return 'Troy';
+    if (firstTwoDigits === '34' || firstTwoDigits === '37') return 'Amex';
+
+    return 'Kart';
+   };
+
+   const cardType = getCardType(cleanedCardNumber);
+   const expectedLength = cardType === 'Amex' ? 15 : 16;
+
+   if (!cleanedCardNumber || cleanedCardNumber.length !== expectedLength) {
+    errors.cardNumber = `Kart numarası ${expectedLength} haneli olmalıdır!`;
+   }
+  }
+
+  if (!cardForm.cardHolder || cardForm.cardHolder.trim().length < 3) {
+   errors.cardHolder = "Kart sahibi adı en az 3 karakter olmalıdır!";
+  }
+
+  if (!cardForm.month || cardForm.month < 1 || cardForm.month > 12) {
+   errors.month = "Geçerli bir ay seçiniz!";
+  }
+
+  if (!cardForm.year || cardForm.year.length !== 2) {
+   errors.year = "Yıl 2 haneli olmalıdır!";
+  }
+
+  const isAmex = editingCard
+   ? (editingCard.cardType === "Amex")
+   : (() => {
+    const cn = (cardForm.cardNumber || "").replace(/\s/g, "");
+    return cn.startsWith("34") || cn.startsWith("37");
+   })();
+  const expectedCvcLen = isAmex ? 4 : 3;
+
+  if (!cardForm.cvc || cardForm.cvc.trim() === "") {
+   errors.cvc = "Güvenlik kodu (CVC/CVV) zorunludur!";
+  } else if (cardForm.cvc.trim().length !== expectedCvcLen) {
+   errors.cvc = isAmex
+    ? "American Express kartlarında güvenlik kodu 4 haneli olmalıdır!"
+    : "Güvenlik kodu (CVC/CVV) 3 haneli olmalıdır!";
+  }
+
+  if (Object.keys(errors).length > 0) {
+   setCardErrors(errors);
+   return;
+  }
+
+  try {
+   const cardId = editingCard?._id?.toString ? editingCard._id.toString() : editingCard?._id;
+   const url = editingCard ? `/api/user/cards/${cardId}` : "/api/user/cards";
+
+   const cleanedCardNumber = cardForm.cardNumber.replace(/\s/g, "");
+
+   const res = editingCard
+    ? await axiosInstance.put(url, {
+     title: cardForm.title,
+     cardHolder: cardForm.cardHolder,
+     month: cardForm.month,
+     year: cardForm.year,
+     cvc: cardForm.cvc,
+     isDefault: cardForm.isDefault,
+    })
+    : await axiosInstance.post(url, {
+     title: cardForm.title,
+     cardNumber: cleanedCardNumber,
+     cardHolder: cardForm.cardHolder,
+     month: cardForm.month,
+     year: cardForm.year,
+     cvc: cardForm.cvc,
+     isDefault: cardForm.isDefault,
+    });
+
+   const data = res.data;
+
+   if (!data.success) {
+    showToast(data.message || "İşlem başarısız!", "error");
+    return;
+   }
+
+   showToast(editingCard ? "Kart güncellendi!" : "Kart eklendi!", "success");
+   setShowCardModal(false);
+   resetCardForm();
+
+   // Eğer response'da cards array'i varsa direkt kullan, yoksa fetchCards çağır
+   if (data.cards && Array.isArray(data.cards)) {
+    const sortedCards = [...data.cards].sort((a, b) => {
+     if (a.isDefault && !b.isDefault) return -1;
+     if (!a.isDefault && b.isDefault) return 1;
+     return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+    setCards(sortedCards);
+   } else {
+    await fetchCards();
+   }
+  } catch (error) {
+   showToast(error.response?.data?.message || "Bir hata oluştu! Lütfen tekrar deneyin.", "error");
+  }
+ };
+
+ const handleEditCard = (card) => {
+  setEditingCard(card);
+
+  const isAmex = (card.cardType || "").toLowerCase() === "amex";
+  // Amex: •••• •••••• 51251 (son 5). Diğerleri: •••• •••• •••• 1234 (son 4)
+  let maskedNumber = isAmex ? "•••• •••••• •••••" : "•••• •••• •••• ••••";
+  let lastDigits = "";
+
+  if (card.cardNumberLast4 !== undefined && card.cardNumberLast4 !== null && card.cardNumberLast4 !== "") {
+   const trimmed = String(card.cardNumberLast4).trim();
+   if (trimmed.length >= (isAmex ? 5 : 4)) {
+    lastDigits = isAmex ? trimmed.slice(-5) : trimmed.slice(-4);
+    maskedNumber = isAmex ? `•••• •••••• ${lastDigits}` : `•••• •••• •••• ${lastDigits}`;
+   } else if (trimmed.length > 0) {
+    lastDigits = trimmed;
+    maskedNumber = isAmex ? `•••• •••••• ${lastDigits}` : `•••• •••• •••• ${lastDigits}`;
+   }
+  }
+
+  if (!lastDigits && card.cardNumberMasked) {
+   const maskedStr = String(card.cardNumberMasked).trim();
+   const lastMatch = RegExp(/(\d{4,5})[^\d]*$/).exec(maskedStr);
+   if (lastMatch && lastMatch[1]) {
+    lastDigits = lastMatch[1];
+    maskedNumber = isAmex ? `•••• •••••• ${lastDigits}` : `•••• •••• •••• ${lastDigits}`;
+   } else {
+    maskedNumber = maskedStr.replace(/\*/g, "•");
+   }
+  }
+
+  const isDefaultValue = card.isDefault === true || card.isDefault === 'true' || card.isDefault === 1;
+
+  setCardForm({
+   title: card.title || '',
+   cardNumber: maskedNumber,
+   cardHolder: card.cardHolder || '',
+   month: card.month || '',
+   year: card.year || '',
+   cvc: card.cvc || '',
+   isDefault: isDefaultValue,
+  });
+  setShowCardModal(true);
+ };
+
  const resetAddressForm = () => {
   setAddressForm({
    title: "",
@@ -498,6 +731,20 @@ export default function Hesabim() {
   });
   setEditingAddress(null);
   setAddressErrors({});
+ };
+
+ const resetCardForm = () => {
+  setCardForm({
+   title: "",
+   cardNumber: "",
+   cardHolder: "",
+   month: "",
+   year: "",
+   cvc: "",
+   isDefault: false,
+  });
+  setCardErrors({});
+  setEditingCard(null);
  };
 
  // Sipariş state'i
@@ -1088,6 +1335,20 @@ export default function Hesabim() {
        />
       )}
 
+      {activeTab === "kartlar" && (
+       <CardsTab
+        cards={cards}
+        onAddNew={() => {
+         resetCardForm();
+         setShowCardModal(true);
+        }}
+        onEdit={handleEditCard}
+        onDelete={(id) => setDeleteConfirm({ show: true, type: 'card', id })}
+        showToast={showToast}
+        fetchCards={fetchCards}
+       />
+      )}
+
       {activeTab === "urun-istekleri" && (
        <ProductRequestsTab />
       )}
@@ -1121,6 +1382,20 @@ export default function Hesabim() {
      onClose={() => {
       setShowAddressModal(false);
       resetAddressForm();
+     }}
+    />
+
+    <CardModal
+     show={showCardModal}
+     editingCard={editingCard}
+     cardForm={cardForm}
+     setCardForm={setCardForm}
+     cardErrors={cardErrors}
+     setCardErrors={setCardErrors}
+     onSubmit={handleCardSubmit}
+     onClose={() => {
+      setShowCardModal(false);
+      resetCardForm();
      }}
     />
 

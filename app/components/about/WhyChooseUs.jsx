@@ -37,7 +37,7 @@ export default function WhyChooseUs() {
   {
    icon: HiShieldCheck,
    title: "Güvenli Ödeme",
-   description: "Havale ve EFT ile Ödeme veya Kapıda Ödeme seçeneklerimizle güvenli ödeme yapabilirsiniz. Havale ve EFT ile ödeme yapmak için sipariş verdiğinizde IBAN bilgilerimiz size iletilecektir. Kapıda ödeme seçeneğinde, ürün teslim edilirken kargo görevlisine nakit veya kredi kartı ile ödeme yapabilirsiniz.",
+   description: "Kart ile Ödeme (3D Secure) seçeneğimizle güvenli ödeme yapabilirsiniz. Banka veya kredi kartınızla 3D Secure ile ödeme yaparak kartınızın güvenliğini sağlayın. Ödeme işlemi bankanız tarafından doğrulanacak ve SMS kodu ile onaylanacaktır.",
    gradient: "from-orange-500 to-orange-700",
   },
  ];
@@ -49,10 +49,10 @@ export default function WhyChooseUs() {
     <h2 className="text-2xl font-bold text-gray-900">Neden Yazıcı Ticaret ?</h2>
    </div>
    <div className="space-y-4">
-    {features.map((feature, idx) => {
+    {features.map((feature) => {
      const IconComponent = feature.icon;
      return (
-      <div key={idx} className="flex items-start gap-4 p-4 bg-green-50 rounded-lg border border-green-200">
+      <div key={feature.title} className="flex items-start gap-4 p-4 bg-green-50 rounded-lg border border-green-200">
        <div className={`shrink-0 w-8 h-8 bg-linear-to-r ${feature.gradient} text-white rounded-full flex items-center justify-center`}>
         <IconComponent size={18} />
        </div>

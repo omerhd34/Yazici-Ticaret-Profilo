@@ -33,7 +33,7 @@ export default function GirisPage() {
     } catch (error) {
     }
 
-    // localStorage'a logout flag'i kaydet
+    // localStorage'a logout flag'i kaydet (sepet/favoriler silinmez; cart_${userId} ile kullanıcıya özel)
     if (typeof window !== 'undefined') {
      localStorage.setItem('just_logged_out', Date.now().toString());
      // Query parametresini temizle

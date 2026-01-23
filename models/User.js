@@ -39,6 +39,50 @@ const AddressSchema = new mongoose.Schema({
  },
 }, { _id: true });
 
+const CardSchema = new mongoose.Schema({
+ title: {
+  type: String,
+  required: true,
+ },
+ cardHolder: {
+  type: String,
+  required: true,
+ },
+ cardNumberLast4: {
+  type: String,
+  required: true,
+ },
+ cardNumberMasked: {
+  type: String,
+  required: true,
+ },
+ cardType: {
+  type: String,
+  enum: ['Visa', 'Mastercard', 'Troy', 'Amex', 'Kart'],
+  default: 'Kart',
+ },
+ month: {
+  type: String,
+  required: true,
+ },
+ year: {
+  type: String,
+  required: true,
+ },
+ cvc: {
+  type: String,
+  required: true,
+ },
+ isDefault: {
+  type: Boolean,
+  default: false,
+ },
+ createdAt: {
+  type: Date,
+  default: Date.now,
+ },
+}, { _id: true });
+
 const UserSchema = new mongoose.Schema({
  name: {
   type: String,
@@ -75,6 +119,7 @@ const UserSchema = new mongoose.Schema({
   default: '',
  },
  addresses: [AddressSchema],
+ cards: [CardSchema],
  orders: [{
   orderId: String,
   date: Date,

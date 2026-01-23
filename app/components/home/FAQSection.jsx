@@ -13,7 +13,7 @@ export default function FAQSection() {
   },
   {
    question: "Ödeme ve Fatura İşlemleri",
-   answer: "Siparişlerinizde Havale ve EFT ile ödeme veya Kapıda Ödeme seçeneklerini kullanabilirsiniz. Havale ve EFT ile ödeme yapmak için sipariş verdiğinizde IBAN bilgilerimiz size iletilecektir. Kapıda ödeme seçeneğinde, ürün teslim edilirken kargo görevlisine nakit veya kredi kartı ile ödeme yapabilirsiniz. E-fatura ve kağıt fatura seçenekleri mevcuttur."
+   answer: "Siparişlerinizde Kart ile Ödeme (3D Secure) seçeneğini kullanabilirsiniz. Banka veya kredi kartınızla 3D Secure ile ödeme yaparak kartınızın güvenliğini sağlayın. Ödeme işlemi bankanız tarafından doğrulanacak ve SMS kodu ile onaylanacaktır. E-fatura ve kağıt fatura seçenekleri mevcuttur."
   },
   {
    question: "Garanti",
@@ -25,7 +25,7 @@ export default function FAQSection() {
   },
   {
    question: "Hangi ödeme yöntemlerini kabul ediyorsunuz?",
-   answer: "Havale ve EFT ile Ödeme ile Kapıda Ödeme seçeneklerini kabul ediyoruz. Havale ve EFT ile ödeme yapmak için sipariş verdiğinizde IBAN bilgilerimiz size iletilecektir. Kapıda ödeme seçeneğinde, ürün teslim edilirken kargo görevlisine nakit veya kredi kartı ile ödeme yapabilirsiniz."
+   answer: "Kart ile Ödeme (3D Secure) seçeneğini kabul ediyoruz. Banka veya kredi kartınızla 3D Secure ile ödeme yaparak kartınızın güvenliğini sağlayın. Ödeme işlemi bankanız tarafından doğrulanacak ve SMS kodu ile onaylanacaktır."
   }
  ];
 
@@ -52,7 +52,7 @@ export default function FAQSection() {
     <div className="space-y-3 sm:space-y-4">
      {importantFAQs.map((faq, index) => (
       <div
-       key={index}
+       key={faq.question}
        className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition-all hover:shadow-md"
       >
        <button

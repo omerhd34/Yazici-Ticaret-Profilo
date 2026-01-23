@@ -32,12 +32,12 @@ export default function BrandLogosSection() {
     </div>
 
     <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8">
-     {brands.map((brand, index) => {
+     {brands.map((brand) => {
       const logoPath = brand.src || `/logos/${brand.name.toLowerCase()}.png`;
       const hasError = imageErrors[brand.name];
       return (
        <div
-        key={index}
+        key={brand.name}
         className="flex items-center justify-center p-4 sm:p-6 bg-white rounded-2xl border border-gray-100 shadow-sm hover:border-indigo-400 hover:shadow-xl transition-all duration-500 group w-36 h-28 sm:w-52 sm:h-44"
        >
         <div className="relative w-full h-full flex items-center justify-center p-2">

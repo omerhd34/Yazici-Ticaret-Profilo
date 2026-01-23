@@ -89,11 +89,7 @@ export default function OrderDetailModal({ show, order, user, onClose, onCancel 
       <div className="bg-white border rounded-xl p-4">
        <div className="text-xs text-gray-500 mb-1">Ödeme</div>
        <div className="font-bold text-gray-900">
-        {order?.payment?.type === "havale"
-         ? "Havale ve EFT ile Ödeme"
-         : order?.payment?.type === "mailorder"
-          ? "Kart İle Ödeme"
-          : (order?.payment?.type ? String(order.payment.type) : "-")}
+        Kart ile Ödeme (3D Secure)
        </div>
       </div>
       <div className="bg-white border rounded-xl p-4">

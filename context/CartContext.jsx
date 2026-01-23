@@ -4,30 +4,59 @@ import axiosInstance from "@/lib/axios";
 
 const CartContext = createContext();
 
+const getCartKey = (uid) => (uid ? `cart_${uid}` : "cart");
+const getFavKey = (uid) => (uid ? `favorites_${uid}` : "favorites");
+
 export function CartProvider({ children }) {
- const [cart, setCart] = useState(() => {
-  if (typeof window === "undefined") return [];
-  try {
-   const savedCart = localStorage.getItem("cart");
-   return savedCart ? JSON.parse(savedCart) : [];
-  } catch (error) {
-   return [];
-  }
- });
+ const [userId, setUserId] = useState(null);
+ const [cart, setCart] = useState([]);
+ const [favorites, setFavorites] = useState([]);
+ const [hasLoaded, setHasLoaded] = useState(false);
 
- const [favorites, setFavorites] = useState(() => {
-  if (typeof window === "undefined") return [];
-  try {
-   const savedFavorites = localStorage.getItem("favorites");
-   return savedFavorites ? JSON.parse(savedFavorites) : [];
-  } catch (error) {
-   return [];
-  }
- });
-
- // Sepet verilerini veritabanından yükle ve senkronize et
+ // Auth kontrolü: userId al, ardından ilgili sepet/favorileri yükle
  useEffect(() => {
-  if (typeof window === "undefined") return;
+  if (globalThis.window === undefined) return;
+
+  const init = async () => {
+   try {
+    const res = await axiosInstance.get("/api/user/check", { cache: "no-store" });
+    const data = res.data;
+    const uid = data?.authenticated && data?.user?.id ? data.user.id : null;
+    setUserId(uid);
+
+    const cKey = getCartKey(uid);
+    const fKey = getFavKey(uid);
+    try {
+     const savedCart = localStorage.getItem(cKey);
+     const savedFav = localStorage.getItem(fKey);
+     setCart(savedCart ? JSON.parse(savedCart) : []);
+     setFavorites(savedFav ? JSON.parse(savedFav) : []);
+    } catch (error_) {
+     setCart([]);
+     setFavorites([]);
+    }
+   } catch (error_) {
+    setUserId(null);
+    try {
+     const savedCart = localStorage.getItem("cart");
+     const savedFav = localStorage.getItem("favorites");
+     setCart(savedCart ? JSON.parse(savedCart) : []);
+     setFavorites(savedFav ? JSON.parse(savedFav) : []);
+    } catch (error_) {
+     setCart([]);
+     setFavorites([]);
+    }
+   } finally {
+    setHasLoaded(true);
+   }
+  };
+  init();
+ }, []);
+
+ // Sepet verilerini veritabanından yükle ve senkronize et (giriş yapılmışsa)
+ useEffect(() => {
+  if (typeof globalThis.window === "undefined" || !hasLoaded) return;
+  const cKey = getCartKey(userId);
 
   let isFetching = false;
   let lastFetchTime = 0;
@@ -35,86 +64,77 @@ export function CartProvider({ children }) {
 
   const syncCartWithDB = async () => {
    const now = Date.now();
-   if (isFetching || (now - lastFetchTime < FETCH_COOLDOWN)) {
-    return;
-   }
-
+   if (isFetching || now - lastFetchTime < FETCH_COOLDOWN) return;
    isFetching = true;
    lastFetchTime = now;
 
    try {
-    // LocalStorage'dan sepet verilerini al
-    const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const localCart = JSON.parse(localStorage.getItem(cKey) || "[]");
     const localCartIds = localCart
-     .map(item => {
+     .map((item) => {
       const id = item._id || item.id;
       return id ? String(id) : null;
      })
      .filter(Boolean);
 
-    // Veritabanından sepet ID'lerini al
+    if (!userId) {
+     isFetching = false;
+     return;
+    }
+
     let dbCartIds = [];
     try {
      const res = await axiosInstance.get("/api/user/cart");
-     const data = res.data;
-
-     if (data.success && data.cart && data.cart.length > 0) {
-      dbCartIds = data.cart.map(id => String(id)).filter(Boolean);
-     }
-    } catch (error) {
-     // Giriş yapılmamışsa veya hata varsa sadece localStorage'daki verileri veritabanına kaydet
+     const d = res.data;
+     if (d.success && d.cart?.length) dbCartIds = d.cart.map((id) => String(id)).filter(Boolean);
+    } catch (_) {
      if (localCartIds.length > 0) {
       try {
        await axiosInstance.put("/api/user/cart", { productIds: localCartIds });
-      } catch (putError) {
-       // Hata varsa sessizce devam et
-      }
+      } catch (__) { }
      }
      isFetching = false;
      return;
     }
 
-    // Veritabanı ve localStorage'ı birleştir
     const allCartIds = [...new Set([...dbCartIds, ...localCartIds])];
-
-    // Veritabanına senkronize et (tüm ürün ID'lerini gönder)
     if (allCartIds.length > 0 && allCartIds.length !== dbCartIds.length) {
      try {
       await axiosInstance.put("/api/user/cart", { productIds: allCartIds });
-     } catch (error) {
-      // Hata varsa sessizce devam et
-     }
+     } catch (_) { }
     }
-   } catch (error) {
+   } catch (_) {
    } finally {
     isFetching = false;
    }
   };
 
-  // Sayfa yüklendiğinde hemen senkronize et
   syncCartWithDB();
 
-  const handleCartStorageChange = (e) => {
-   if (e.key === 'cart' || e.key === null) {
-    syncCartWithDB();
-   }
+  const onStorage = (e) => {
+   if (e.key === cKey || e.key === "cart" || e.key === null) syncCartWithDB();
   };
+  const onCartUpdate = () => syncCartWithDB();
 
-  const handleCartUpdate = () => {
-   syncCartWithDB();
-  };
-
-  window.addEventListener("storage", handleCartStorageChange);
-  window.addEventListener("cartUpdated", handleCartUpdate);
+  globalThis.addEventListener("storage", onStorage);
+  globalThis.addEventListener("cartUpdated", onCartUpdate);
 
   return () => {
-   window.removeEventListener("storage", handleCartStorageChange);
-   window.removeEventListener("cartUpdated", handleCartUpdate);
+   globalThis.removeEventListener("storage", onStorage);
+   globalThis.removeEventListener("cartUpdated", onCartUpdate);
   };
+ }, [userId, hasLoaded]);
+
+ // Logout: sepet/favoriler silinmez (kullanıcı tekrar girişte kendi sepeti yüklenecek)
+ useEffect(() => {
+  const handleLogout = () => { /* no-op */ };
+  window.addEventListener("logout", handleLogout);
+  return () => window.removeEventListener("logout", handleLogout);
  }, []);
 
  useEffect(() => {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !hasLoaded) return;
+  const fKey = getFavKey(userId);
 
   let isFetching = false;
   let lastFetchTime = 0;
@@ -122,68 +142,53 @@ export function CartProvider({ children }) {
 
   const fetchFavoritesFromDB = async () => {
    const now = Date.now();
-   if (isFetching || (now - lastFetchTime < FETCH_COOLDOWN)) {
-    return;
-   }
-
+   if (isFetching || now - lastFetchTime < FETCH_COOLDOWN) return;
    isFetching = true;
    lastFetchTime = now;
 
    try {
     const productsRes = await axiosInstance.get("/api/products?limit=1000");
     const productsData = productsRes.data;
-
     const allProducts = productsData.data || productsData.products || [];
 
     if (!productsData.success || allProducts.length === 0) {
-     const localFavorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-     if (localFavorites.length > 0) {
+     const localFav = JSON.parse(localStorage.getItem(fKey) || "[]");
+     if (localFav.length > 0) {
       setFavorites([]);
-      localStorage.removeItem("favorites");
+      localStorage.removeItem(fKey);
      }
+     isFetching = false;
      return;
     }
-    const allProductIds = new Set(allProducts.map(p => String(p._id)));
+    const allProductIds = new Set(allProducts.map((p) => String(p._id)));
 
     let dbFavoriteIds = [];
     try {
      const res = await axiosInstance.get("/api/user/favorites");
      const data = res.data;
+     if (data.success && data.favorites?.length)
+      dbFavoriteIds = data.favorites.map((fav) => String(fav._id || fav)).filter(Boolean);
+    } catch (error_) { }
 
-     if (data.success && data.favorites && data.favorites.length > 0) {
-      dbFavoriteIds = data.favorites.map(fav => String(fav._id || fav)).filter(Boolean);
-     }
-    } catch (error) {
-    }
-
-    const localFavorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-    const localIds = localFavorites
-     .map(fav => {
+    const localFav = JSON.parse(localStorage.getItem(fKey) || "[]");
+    const localIds = localFav
+     .map((fav) => {
       const id = fav._id || fav.id;
       return id ? String(id) : null;
      })
      .filter(Boolean);
 
     const allFavoriteIds = [...new Set([...dbFavoriteIds, ...localIds])];
+    const validFavoriteIds = new Set(allFavoriteIds.filter((id) => allProductIds.has(id)));
+    const favoriteProducts = allProducts.filter((p) => validFavoriteIds.has(String(p._id)));
 
-    const validFavoriteIds = allFavoriteIds.filter(id => allProductIds.has(id));
-
-    const favoriteProducts = allProducts.filter(product =>
-     validFavoriteIds.includes(String(product._id))
-    );
-
-    setFavorites(prevFavorites => {
-     const prevIds = new Set(prevFavorites.map(f => String(f._id || f.id)));
-     const newIds = new Set(favoriteProducts.map(f => String(f._id)));
-
-     if (prevIds.size === newIds.size &&
-      [...prevIds].every(id => newIds.has(id))) {
-      return prevFavorites;
-     }
-
+    setFavorites((prev) => {
+     const prevIds = new Set(prev.map((f) => String(f._id || f.id)));
+     const newIds = new Set(favoriteProducts.map((f) => String(f._id)));
+     if (prevIds.size === newIds.size && [...prevIds].every((id) => newIds.has(id))) return prev;
      return favoriteProducts;
     });
-   } catch (error) {
+   } catch (_) {
    } finally {
     isFetching = false;
    }
@@ -191,24 +196,19 @@ export function CartProvider({ children }) {
 
   fetchFavoritesFromDB();
 
-  const handleStorageChange = (e) => {
-   if (e.key === 'favorites' || e.key === null) {
-    fetchFavoritesFromDB();
-   }
+  const onStorage = (e) => {
+   if (e.key === fKey || e.key === "favorites" || e.key === null) fetchFavoritesFromDB();
   };
+  const onFavUpdate = () => fetchFavoritesFromDB();
 
-  const handleFavoritesUpdate = () => {
-   fetchFavoritesFromDB();
-  };
-
-  window.addEventListener("storage", handleStorageChange);
-  window.addEventListener("favoritesUpdated", handleFavoritesUpdate);
+  globalThis.addEventListener("storage", onStorage);
+  globalThis.addEventListener("favoritesUpdated", onFavUpdate);
 
   return () => {
-   window.removeEventListener("storage", handleStorageChange);
-   window.removeEventListener("favoritesUpdated", handleFavoritesUpdate);
+   globalThis.removeEventListener("storage", onStorage);
+   globalThis.removeEventListener("favoritesUpdated", onFavUpdate);
   };
- }, []);
+ }, [userId, hasLoaded]);
 
  const updateCartPrices = async () => {
   if (cart.length === 0) return;
@@ -246,12 +246,12 @@ export function CartProvider({ children }) {
     const hasChanges = prevCart.some((oldItem, index) => {
      const newItem = updatedCart[index];
      if (!newItem) return true;
-     
+
      // Kampanya fiyatı olan ürünlerin fiyatlarını güncelleme
      if (oldItem.campaignPrice) {
       return oldItem.stock !== newItem.stock;
      }
-     
+
      const oldPrice = oldItem.discountPrice && oldItem.discountPrice < oldItem.price
       ? oldItem.discountPrice
       : oldItem.price;
@@ -263,12 +263,12 @@ export function CartProvider({ children }) {
 
     return hasChanges ? updatedCart : prevCart;
    });
-  } catch (error) {
+  } catch (error_) {
   }
  };
 
  useEffect(() => {
-  if (typeof window === "undefined" || cart.length === 0) return;
+  if (typeof globalThis.window === "undefined" || cart.length === 0) return;
 
   const timeoutId = setTimeout(() => {
    updateCartPrices();
@@ -288,36 +288,38 @@ export function CartProvider({ children }) {
    updateCartPrices();
   };
 
-  window.addEventListener("visibilitychange", handleVisibilityChange);
-  window.addEventListener("focus", handleFocus);
-  window.addEventListener("cartUpdated", handleCartUpdate);
+  globalThis.addEventListener("visibilitychange", handleVisibilityChange);
+  globalThis.addEventListener("focus", handleFocus);
+  globalThis.addEventListener("cartUpdated", handleCartUpdate);
 
   return () => {
    clearTimeout(timeoutId);
-   window.removeEventListener("visibilitychange", handleVisibilityChange);
-   window.removeEventListener("focus", handleFocus);
-   window.removeEventListener("cartUpdated", handleCartUpdate);
+   globalThis.removeEventListener("visibilitychange", handleVisibilityChange);
+   globalThis.removeEventListener("focus", handleFocus);
+   globalThis.removeEventListener("cartUpdated", handleCartUpdate);
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [cart.length]);
 
  useEffect(() => {
-  if (typeof window === "undefined") return;
+  if (typeof globalThis.window === "undefined" || !hasLoaded) return;
+  const cKey = getCartKey(userId);
   if (cart.length > 0) {
-   localStorage.setItem("cart", JSON.stringify(cart));
+   localStorage.setItem(cKey, JSON.stringify(cart));
   } else {
-   localStorage.removeItem("cart");
+   localStorage.removeItem(cKey);
   }
- }, [cart]);
+ }, [cart, userId, hasLoaded]);
 
  useEffect(() => {
-  if (typeof window === "undefined") return;
+  if (typeof globalThis.window === "undefined" || !hasLoaded) return;
+  const fKey = getFavKey(userId);
   if (favorites.length > 0) {
-   localStorage.setItem("favorites", JSON.stringify(favorites));
+   localStorage.setItem(fKey, JSON.stringify(favorites));
   } else {
-   localStorage.removeItem("favorites");
+   localStorage.removeItem(fKey);
   }
- }, [favorites]);
+ }, [favorites, userId, hasLoaded]);
 
  const addToCart = async (product, selectedSize = null, selectedColor = null, quantity = 1) => {
   if (product.stock === 0 || product.stock < quantity) {
@@ -432,14 +434,12 @@ export function CartProvider({ children }) {
 
  const clearCart = async () => {
   setCart([]);
-  localStorage.removeItem("cart");
-
-  // Veritabanından temizle (giriş yapılmışsa)
+  if (typeof globalThis.window !== "undefined") {
+   localStorage.removeItem(getCartKey(userId));
+  }
   try {
    await axiosInstance.put("/api/user/cart", { productIds: [] });
-  } catch (error) {
-   // Giriş yapılmamışsa veya hata varsa sessizce devam et
-  }
+  } catch (error_) { }
  };
 
  const getCartTotal = () => {
@@ -465,12 +465,11 @@ export function CartProvider({ children }) {
   if (!product || !product._id) return;
   const productIdStr = String(product._id);
   let previousFavorites = favorites;
+  const fKey = getFavKey(userId);
 
   setFavorites((prev) => {
    previousFavorites = prev;
-   if (prev.some((item) => String(item._id || item.id) === productIdStr)) {
-    return prev;
-   }
+   if (prev.some((item) => String(item._id || item.id) === productIdStr)) return prev;
    return [...prev, product];
   });
 
@@ -478,28 +477,26 @@ export function CartProvider({ children }) {
    ? previousFavorites
    : [...previousFavorites, product];
 
-  if (typeof window !== "undefined") {
-   localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
-   window.dispatchEvent(new Event("favoritesUpdated"));
+  if (typeof globalThis.window !== "undefined") {
+   localStorage.setItem(fKey, JSON.stringify(updatedFavorites));
+   globalThis.dispatchEvent(new Event("favoritesUpdated"));
   }
 
   try {
-   const res = await axiosInstance.post("/api/user/favorites", {
-    productId: product._id,
-   });
+   const res = await axiosInstance.post("/api/user/favorites", { productId: product._id });
    const data = res.data;
    if (!data.success) {
     setFavorites(previousFavorites);
-    if (typeof window !== "undefined") {
-     localStorage.setItem("favorites", JSON.stringify(previousFavorites));
-     window.dispatchEvent(new Event("favoritesUpdated"));
+    if (typeof globalThis.window !== "undefined") {
+     localStorage.setItem(fKey, JSON.stringify(previousFavorites));
+     globalThis.dispatchEvent(new Event("favoritesUpdated"));
     }
    }
-  } catch (error) {
+  } catch (error_) {
    setFavorites(previousFavorites);
-   if (typeof window !== "undefined") {
-    localStorage.setItem("favorites", JSON.stringify(previousFavorites));
-    window.dispatchEvent(new Event("favoritesUpdated"));
+   if (typeof globalThis.window !== "undefined") {
+    localStorage.setItem(fKey, JSON.stringify(previousFavorites));
+    globalThis.dispatchEvent(new Event("favoritesUpdated"));
    }
   }
  };
@@ -508,6 +505,7 @@ export function CartProvider({ children }) {
   if (!productId) return;
   const productIdStr = String(productId);
   let previousFavorites = favorites;
+  const fKey = getFavKey(userId);
 
   setFavorites((prev) => {
    previousFavorites = prev;
@@ -517,7 +515,7 @@ export function CartProvider({ children }) {
   const updatedFavorites = previousFavorites.filter((item) => String(item._id || item.id) !== productIdStr);
 
   if (typeof window !== "undefined") {
-   localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
+   localStorage.setItem(fKey, JSON.stringify(updatedFavorites));
    window.dispatchEvent(new Event("favoritesUpdated"));
   }
 
@@ -527,18 +525,16 @@ export function CartProvider({ children }) {
    if (!data.success) {
     setFavorites(previousFavorites);
     if (typeof window !== "undefined") {
-     localStorage.setItem("favorites", JSON.stringify(previousFavorites));
+     localStorage.setItem(fKey, JSON.stringify(previousFavorites));
      window.dispatchEvent(new Event("favoritesUpdated"));
     }
-   } else {
-    if (typeof window !== "undefined") {
-     window.dispatchEvent(new Event("favoritesUpdated"));
-    }
+   } else if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("favoritesUpdated"));
    }
-  } catch (error) {
+  } catch (_) {
    setFavorites(previousFavorites);
    if (typeof window !== "undefined") {
-    localStorage.setItem("favorites", JSON.stringify(previousFavorites));
+    localStorage.setItem(fKey, JSON.stringify(previousFavorites));
     window.dispatchEvent(new Event("favoritesUpdated"));
    }
   }
@@ -551,7 +547,7 @@ export function CartProvider({ children }) {
  };
 
  useEffect(() => {
-  if (typeof window === "undefined" || cart.length === 0) return;
+  if (typeof globalThis.window === "undefined" || cart.length === 0) return;
 
   const updateCartPrices = async () => {
    try {
@@ -594,7 +590,7 @@ export function CartProvider({ children }) {
 
      return hasChanges ? updatedCart : prevCart;
     });
-   } catch (error) {
+   } catch (error_) {
    }
   };
 
@@ -616,15 +612,15 @@ export function CartProvider({ children }) {
    updateCartPrices();
   };
 
-  window.addEventListener("visibilitychange", handleVisibilityChange);
-  window.addEventListener("focus", handleFocus);
-  window.addEventListener("cartUpdated", handleCartUpdate);
+  globalThis.addEventListener("visibilitychange", handleVisibilityChange);
+  globalThis.addEventListener("focus", handleFocus);
+  globalThis.addEventListener("cartUpdated", handleCartUpdate);
 
   return () => {
    clearTimeout(timeoutId);
-   window.removeEventListener("visibilitychange", handleVisibilityChange);
-   window.removeEventListener("focus", handleFocus);
-   window.removeEventListener("cartUpdated", handleCartUpdate);
+   globalThis.removeEventListener("visibilitychange", handleVisibilityChange);
+   globalThis.removeEventListener("focus", handleFocus);
+   globalThis.removeEventListener("cartUpdated", handleCartUpdate);
   };
  }, [cart.length]);
 

@@ -2,7 +2,6 @@
 import { HiAdjustments, HiChevronDown } from "react-icons/hi";
 
 export default function CategoryToolbar({ sortBy, onSortChange, onFiltersClick, slug = [] }) {
- // Kategori slug'ını kontrol et
  const categorySlug = slug.length > 0 ? decodeURIComponent(slug[0]) : "";
  const isYenilerPage = categorySlug === "yeni" || categorySlug === "yeniler";
  const isIndirimPage = categorySlug === "indirim";

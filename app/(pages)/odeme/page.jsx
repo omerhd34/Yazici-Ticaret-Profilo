@@ -10,6 +10,8 @@ import PaymentEmptyCart from "@/app/components/payment/PaymentEmptyCart";
 import DeliveryAddressSection from "@/app/components/payment/DeliveryAddressSection";
 import PaymentMethodSection from "@/app/components/payment/PaymentMethodSection";
 import OrderSummary from "@/app/components/payment/OrderSummary";
+import CardForm from "@/app/components/payment/CardForm";
+import SavedCardsSection from "@/app/components/payment/SavedCardsSection";
 
 export default function OdemePage() {
  const router = useRouter();
@@ -220,7 +222,16 @@ export default function OdemePage() {
  const [addressesLoading, setAddressesLoading] = useState(true);
  const [selectedAddressId, setSelectedAddressId] = useState("");
 
- const [paymentMethod, setPaymentMethod] = useState({ type: "mailorder" });
+const [paymentMethod, setPaymentMethod] = useState({ type: "3dsecure" });
+const [selectedCardId, setSelectedCardId] = useState(null);
+const [cardData, setCardData] = useState({
+ cardNumber: "",
+ cardNumberFormatted: "",
+ cardHolder: "",
+ month: "",
+ year: "",
+ cvc: "",
+});
 
  const [acceptedTerms, setAcceptedTerms] = useState(false);
  const [error, setError] = useState("");
@@ -255,14 +266,71 @@ export default function OdemePage() {
   }
  }, [cart, fetchAddresses]);
 
- const canPay = useMemo(() => {
-  if (!cart || cart.length === 0) return false;
-  if (!acceptedTerms) return false;
-  if (!selectedAddressId) return false;
-  if (paymentMethod.type === "havale") return true;
-  if (paymentMethod.type === "mailorder") return true;
+const canPay = useMemo(() => {
+ if (!cart || cart.length === 0 || !acceptedTerms || !selectedAddressId) {
   return false;
- }, [acceptedTerms, cart, paymentMethod, selectedAddressId]);
+ }
+ 
+ // 3D Secure için kart bilgileri kontrolü
+ // Eğer kayıtlı kart seçilmişse, CVC kontrolü yapılmaz (güvenli ödeme yöntemi)
+ if (selectedCardId) {
+  return true;
+ }
+ 
+ // Yeni kart girişi için tüm alanlar kontrol edilmeli
+ if (!cardData.cardNumber || !cardData.cardHolder || !cardData.month || !cardData.year || !cardData.cvc) {
+  return false;
+ }
+ 
+ // Kart numarası kontrolü (Amex için 15, diğerleri için 16)
+ const cardNumberCleaned = cardData.cardNumber.replaceAll(" ", "");
+ const getCardType = (cardNumber) => {
+  if (!cardNumber || cardNumber.length === 0) return 'Kart';
+  const firstTwoDigits = cardNumber.substring(0, 2);
+  if (firstTwoDigits === '34' || firstTwoDigits === '37') return 'Amex';
+  return 'Other';
+ };
+ const cardType = getCardType(cardNumberCleaned);
+ const expectedLength = cardType === 'Amex' ? 15 : 16;
+ const expectedCvcLen = cardType === 'Amex' ? 4 : 3;
+
+ return cardNumberCleaned.length === expectedLength && cardData.cvc.length === expectedCvcLen;
+}, [acceptedTerms, cart, selectedAddressId, cardData, selectedCardId]);
+
+ const handleCardSelect = (card) => {
+  if (!card) {
+   // Yeni kart girişi
+   setSelectedCardId(null);
+   setCardData({
+    cardNumber: "",
+    cardNumberFormatted: "",
+    cardHolder: "",
+    month: "",
+    year: "",
+    cvc: "",
+   });
+   return;
+  }
+  
+  // Kayıtlı kart seçildi
+  setSelectedCardId(card._id?.toString ? card._id.toString() : String(card._id || ''));
+  // Kart numarasını masked format'tan al veya last digits'ten oluştur (Amex: •••• •••••• 51251, diğer: •••• •••• •••• 1234)
+  const isAmex = (card.cardType || "").toLowerCase() === "amex";
+  const fallbackMasked = isAmex
+   ? `•••• •••••• ${card.cardNumberLast4 || ""}`
+   : `•••• •••• •••• ${card.cardNumberLast4 || ""}`;
+  const cardNumberMasked = card.cardNumberMasked
+   ? String(card.cardNumberMasked).replace(/\*/g, "•")
+   : fallbackMasked;
+  setCardData({
+   cardNumber: "", // Kayıtlı kartlarda tam kart numarası saklanmıyor, API'den alınacak
+   cardNumberFormatted: cardNumberMasked,
+   cardHolder: card.cardHolder || "",
+   month: card.month || "",
+   year: card.year || "",
+   cvc: "", // CVC her zaman kullanıcıdan alınmalı
+  });
+ };
 
  const handlePay = async () => {
   if (isSubmitting) return; // Çift tıklamayı engelle
@@ -271,10 +339,27 @@ export default function OdemePage() {
    setError("Lütfen teslimat adresi seçin.");
    return;
   }
-  if (paymentMethod.type !== "havale" && paymentMethod.type !== "mailorder") {
-   setError("Lütfen geçerli bir ödeme yöntemi seçin.");
+
+  // 3D Secure için kart bilgileri kontrolü
+  if (selectedCardId) {
+   // Kayıtlı kart seçilmişse, CVC kontrolü yapılmaz (güvenli ödeme yöntemi)
+   // Doğrudan devam edebilir
+  } else if (!cardData.cardNumber || !cardData.cardHolder || !cardData.month || !cardData.year || !cardData.cvc) {
+   // Yeni kart girişi için tüm alanlar kontrol edilmeli
+   setError("Lütfen tüm kart bilgilerini doldurun.");
+   setIsSubmitting(false);
    return;
   }
+
+  // Kart formu validasyonu
+  if (globalThis.window?.cardFormValidate) {
+   if (!globalThis.window.cardFormValidate()) {
+    setError("Lütfen geçerli kart bilgileri girin.");
+    setIsSubmitting(false);
+    return;
+   }
+  }
+
   if (!acceptedTerms) {
    setError("Devam etmek için sözleşmeleri onaylamalısınız.");
    return;
@@ -282,133 +367,120 @@ export default function OdemePage() {
   setError("");
   setIsSubmitting(true);
 
-  if (paymentMethod.type === "havale") {
-   try {
-    const selectedAddress = addresses.find((a) => String(a._id) === String(selectedAddressId));
-    const addressSummary = selectedAddress
-     ? `${selectedAddress.title} - ${selectedAddress.fullName}, ${selectedAddress.address}, ${selectedAddress.district}/${selectedAddress.city} (${selectedAddress.phone})`
-     : "";
-    const shippingAddress = selectedAddress
-     ? {
-      title: selectedAddress.title,
-      fullName: selectedAddress.fullName,
-      phone: selectedAddress.phone,
-      address: selectedAddress.address,
-      district: selectedAddress.district,
-      city: selectedAddress.city,
-     }
-     : null;
-
-    const payloadItems = (cartWithCampaigns || cart || []).map((i) => {
-     // Kampanya fiyatı varsa onu kullan
-     let price = i.campaignPrice;
-     if (!price) {
-      price = i.discountPrice && i.discountPrice < i.price ? i.discountPrice : i.price;
-     }
-     return {
-      productId: String(i._id || i.id),
-      name: i.name,
-      slug: i.slug,
-      image: i?.images?.[0] || i.image || "",
-      price: Number(price || 0),
-      quantity: Number(i.quantity || 1),
-      size: i.selectedSize || "",
-      color: i.selectedColor || "",
-      campaignId: i.campaignId || null,
-      campaignTitle: i.campaignTitle || null,
-     };
-    });
-
-    const res = await axiosInstance.post("/api/user/orders", {
-     items: payloadItems,
-     total: grandTotal,
-     paymentMethod: { type: paymentMethod.type },
-     address: {
-      id: selectedAddressId,
-      summary: addressSummary,
-      shippingAddress,
-      billingAddress: shippingAddress,
-     },
-    });
-
-    const data = res.data || {};
-    if (!data.success) {
-     setError(data.message || "Sipariş oluşturulamadı.");
-     setIsSubmitting(false);
-     return;
+  // 3D Secure Ödeme
+  try {
+   const selectedAddress = addresses.find((a) => String(a._id) === String(selectedAddressId));
+   const addressSummary = selectedAddress
+    ? `${selectedAddress.title} - ${selectedAddress.fullName}, ${selectedAddress.address}, ${selectedAddress.district}/${selectedAddress.city} (${selectedAddress.phone})`
+    : "";
+   const shippingAddress = selectedAddress
+    ? {
+     title: selectedAddress.title,
+     fullName: selectedAddress.fullName,
+     phone: selectedAddress.phone,
+     address: selectedAddress.address,
+     district: selectedAddress.district,
+     city: selectedAddress.city,
     }
+    : null;
 
-    clearCart();
-    router.push(`/hesabim?tab=siparisler`);
-   } catch (e) {
-    setError("Sipariş oluşturulurken bir hata oluştu.");
+   const payloadItems = (cartWithCampaigns || cart || []).map((i) => {
+    let price = i.campaignPrice;
+    if (!price) {
+     price = i.discountPrice && i.discountPrice < i.price ? i.discountPrice : i.price;
+    }
+    return {
+     productId: String(i._id || i.id),
+     name: i.name,
+     slug: i.slug,
+     image: i?.images?.[0] || i.image || "",
+     price: Number(price || 0),
+     quantity: Number(i.quantity || 1),
+     size: i.selectedSize || "",
+     color: i.selectedColor || "",
+     campaignId: i.campaignId || null,
+     campaignTitle: i.campaignTitle || null,
+    };
+   });
+
+   // Önce siparişi oluştur
+   const orderRes = await axiosInstance.post("/api/user/orders", {
+    items: payloadItems,
+    total: grandTotal,
+    paymentMethod: { type: "3dsecure" },
+    address: {
+     id: selectedAddressId,
+     summary: addressSummary,
+     shippingAddress,
+     billingAddress: shippingAddress,
+    },
+   });
+
+   const orderData = orderRes.data || {};
+   if (!orderData.success) {
+    setError(orderData.message || "Sipariş oluşturulamadı.");
+    setIsSubmitting(false);
+    return;
+   }
+
+   const orderId = orderData.orderId;
+
+   // 3D Secure başlat
+   // Eğer kayıtlı kart seçilmişse, kart ID'sini gönder
+   const cardPayload = selectedCardId
+    ? {
+     cardId: selectedCardId,
+     cvc: cardData.cvc,
+    }
+    : {
+     cardNumber: cardData.cardNumber,
+     cardHolder: cardData.cardHolder,
+     month: cardData.month,
+     year: cardData.year,
+     cvc: cardData.cvc,
+    };
+
+   const tdsRes = await axiosInstance.post("/api/payment/3ds-initialize", {
+    amount: grandTotal,
+    referenceNo: orderId,
+    cardData: cardPayload,
+    address: {
+     phone: selectedAddress?.phone || "",
+     email: "", // Kullanıcı email'i session'dan alınabilir
+    },
+    items: payloadItems,
+   });
+
+   const tdsData = tdsRes.data || {};
+   if (!tdsData.success) {
+    setError(tdsData.message || "Ödeme işlemi başlatılamadı.");
+    setIsSubmitting(false);
+    return;
+   }
+
+   // OrderId'yi sessionStorage'a kaydet (callback için)
+   if (globalThis.window !== undefined) {
+    globalThis.window.sessionStorage.setItem("pendingOrderId", orderId);
+   }
+
+   // 3D Secure sayfasına yönlendir
+   if (tdsData.postUrl) {
+    globalThis.window.location.href = `${tdsData.postUrl}&orderId=${orderId}`;
+   } else if (tdsData.htmlContent) {
+    // HTML content varsa form oluştur ve submit et
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = tdsData.postUrl || "";
+    form.innerHTML = tdsData.htmlContent;
+    document.body.appendChild(form);
+    form.submit();
+   } else {
+    setError("3D Secure sayfasına yönlendirilemedi.");
     setIsSubmitting(false);
    }
-  } else if (paymentMethod.type === "mailorder") {
-   // Kapıda ödeme (Mail Order)
-   try {
-    const selectedAddress = addresses.find((a) => String(a._id) === String(selectedAddressId));
-    const addressSummary = selectedAddress
-     ? `${selectedAddress.title} - ${selectedAddress.fullName}, ${selectedAddress.address}, ${selectedAddress.district}/${selectedAddress.city} (${selectedAddress.phone})`
-     : "";
-    const shippingAddress = selectedAddress
-     ? {
-      title: selectedAddress.title,
-      fullName: selectedAddress.fullName,
-      phone: selectedAddress.phone,
-      address: selectedAddress.address,
-      district: selectedAddress.district,
-      city: selectedAddress.city,
-     }
-     : null;
-
-    const payloadItems = (cartWithCampaigns || cart || []).map((i) => {
-     // Kampanya fiyatı varsa onu kullan
-     let price = i.campaignPrice;
-     if (!price) {
-      price = i.discountPrice && i.discountPrice < i.price ? i.discountPrice : i.price;
-     }
-     return {
-      productId: String(i._id || i.id),
-      name: i.name,
-      slug: i.slug,
-      image: i?.images?.[0] || i.image || "",
-      price: Number(price || 0),
-      quantity: Number(i.quantity || 1),
-      size: i.selectedSize || "",
-      color: i.selectedColor || "",
-      campaignId: i.campaignId || null,
-      campaignTitle: i.campaignTitle || null,
-     };
-    });
-
-    const res = await axiosInstance.post("/api/user/orders", {
-     items: payloadItems,
-     total: grandTotal,
-     paymentMethod: { type: paymentMethod.type },
-     address: {
-      id: selectedAddressId,
-      summary: addressSummary,
-      shippingAddress,
-      billingAddress: shippingAddress,
-     },
-    });
-
-    const data = res.data || {};
-    if (!data.success) {
-     setError(data.message || "Sipariş oluşturulamadı.");
-     setIsSubmitting(false);
-     return;
-    }
-
-    clearCart();
-    router.push(`/hesabim?tab=siparisler`);
-   } catch (e) {
-    setError("Sipariş oluşturulurken bir hata oluştu.");
-    setIsSubmitting(false);
-   }
-  } else {
-   setError("Geçersiz ödeme yöntemi.");
+  } catch (e) {
+   console.error("3D Secure ödeme hatası:", e);
+   setError(e.response?.data?.message || "Ödeme işlemi başlatılamadı.");
    setIsSubmitting(false);
   }
  };
@@ -439,6 +511,29 @@ export default function OdemePage() {
        paymentMethod={paymentMethod}
        onPaymentMethodChange={setPaymentMethod}
       />
+
+      <div className="bg-white rounded-xl shadow-sm p-6">
+       <h2 className="text-xl font-bold text-gray-900 mb-4">Kart Bilgileri</h2>
+       <SavedCardsSection
+        onSelectCard={handleCardSelect}
+        selectedCardId={selectedCardId}
+        cardData={cardData}
+       />
+       {!selectedCardId && (
+        <CardForm
+         cardData={cardData}
+         onCardDataChange={setCardData}
+         isSavedCard={false}
+        />
+       )}
+       {selectedCardId && (
+        <div className="mt-4">
+         <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <p className="text-sm text-green-700">Kayıtlı kart seçildi. Güvenli ödeme yöntemi ile devam edebilirsiniz.</p>
+         </div>
+        </div>
+       )}
+      </div>
      </div>
 
      <div className="lg:col-span-1">

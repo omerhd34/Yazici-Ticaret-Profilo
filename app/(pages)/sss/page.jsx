@@ -21,7 +21,7 @@ export default function SSSPage() {
   },
   {
    question: "Ödeme ve Fatura İşlemleri",
-   answer: "Siparişlerinizde Havale ve EFT ile ödeme veya Kapıda Ödeme seçeneklerini kullanabilirsiniz. Havale ve EFT ile ödeme yapmak için sipariş verdiğinizde IBAN bilgilerimiz size iletilecektir. Ödeme işleminizi tamamladıktan sonra ödeme dekontunuzu müşteri hizmetlerimizle paylaşmanız gerekmektedir. Kapıda ödeme seçeneğinde, ürün teslim edilirken kargo görevlisine nakit veya kredi kartı ile ödeme yapabilirsiniz. Fatura işlemleri için fatura bilgilerinizi sipariş sırasında belirtmeniz gerekmektedir. E-fatura ve kağıt fatura seçenekleri mevcuttur. Faturalarınız siparişinizle birlikte gönderilmektedir. Fatura düzenleme talepleriniz için müşteri hizmetlerimizle iletişime geçebilirsiniz."
+   answer: "Siparişlerinizde Kart ile Ödeme (3D Secure) seçeneğini kullanabilirsiniz. Banka veya kredi kartınızla 3D Secure ile ödeme yaparak kartınızın güvenliğini sağlayın. Ödeme işlemi bankanız tarafından doğrulanacak ve SMS kodu ile onaylanacaktır. Fatura işlemleri için fatura bilgilerinizi sipariş sırasında belirtmeniz gerekmektedir. E-fatura ve kağıt fatura seçenekleri mevcuttur. Faturalarınız siparişinizle birlikte gönderilmektedir. Fatura düzenleme talepleriniz için müşteri hizmetlerimizle iletişime geçebilirsiniz."
   },
   {
    question: "Kargo ve Teslimat",
@@ -61,7 +61,7 @@ export default function SSSPage() {
   },
   {
    question: "Hangi ödeme yöntemlerini kabul ediyorsunuz?",
-   answer: "Havale ve EFT ile Ödeme ile Kapıda Ödeme seçeneklerini kabul ediyoruz. Havale ve EFT ile ödeme yapmak için sipariş verdiğinizde IBAN bilgilerimiz size iletilecektir. Kapıda ödeme seçeneğinde, ürün teslim edilirken kargo görevlisine nakit veya kredi kartı ile ödeme yapabilirsiniz."
+   answer: "Kart ile Ödeme (3D Secure) seçeneğini kabul ediyoruz. Banka veya kredi kartınızla 3D Secure ile ödeme yaparak kartınızın güvenliğini sağlayın. Ödeme işlemi bankanız tarafından doğrulanacak ve SMS kodu ile onaylanacaktır."
   },
   {
    question: "Ürün stokta yoksa ne yapabilirim?",

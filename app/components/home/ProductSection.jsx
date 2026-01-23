@@ -9,15 +9,15 @@ export default function ProductSection({ title, description, products, loading, 
  const [showRightArrow, setShowRightArrow] = useState(true);
  const scrollContainerRef = useRef(null);
 
- useEffect(() => {
-  const updateArrows = () => {
-   if (scrollContainerRef.current) {
-    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-    setShowLeftArrow(scrollLeft > 10);
-    setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
-   }
-  };
+ const updateArrows = () => {
+  if (scrollContainerRef.current) {
+   const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+   setShowLeftArrow(scrollLeft > 10);
+   setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
+  }
+ };
 
+ useEffect(() => {
   const timeoutId = setTimeout(updateArrows, 100);
   const container = scrollContainerRef.current;
 
@@ -73,13 +73,6 @@ export default function ProductSection({ title, description, products, loading, 
   });
  };
 
- const handleScroll = () => {
-  if (scrollContainerRef.current) {
-   const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-   setShowLeftArrow(scrollLeft > 10);
-   setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
-  }
- };
 
  return (
   <section className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-10 md:py-12">
@@ -109,8 +102,8 @@ export default function ProductSection({ title, description, products, loading, 
    <div className="relative">
     {loading ? (
      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 items-stretch">
-      {[...Array(4)].map((_, i) => (
-       <div key={i} className="bg-white rounded-xl overflow-hidden shadow-sm animate-pulse">
+      {Array.from({ length: 4 }, (_, i) => (
+       <div key={`skeleton-${title}-${i}`} className="bg-white rounded-xl overflow-hidden shadow-sm animate-pulse">
         <div className="aspect-square bg-gray-200" />
         <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
          <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4" />
@@ -124,7 +117,7 @@ export default function ProductSection({ title, description, products, loading, 
       {/* Scroll Container */}
       <div
        ref={scrollContainerRef}
-       onScroll={handleScroll}
+       onScroll={updateArrows}
        className="flex gap-4 sm:gap-5 md:gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-2 snap-x snap-mandatory"
        style={{ scrollPaddingLeft: '0' }}
       >

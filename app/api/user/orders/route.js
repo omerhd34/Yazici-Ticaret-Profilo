@@ -223,8 +223,7 @@ export async function POST(request) {
   }
 
   const orderId = `YZT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
-  const pmType = paymentMethod?.type || '';
-  const orderStatus = pmType === 'mailorder' ? 'Beklemede' : 'Beklemede';
+  const orderStatus = 'Beklemede';
 
   const order = {
    orderId,
@@ -232,7 +231,7 @@ export async function POST(request) {
    status: orderStatus,
    total: serverGrandTotal,
    items: repricedItems,
-   payment: paymentMethod || { type: 'havale' },
+   payment: paymentMethod || { type: '3dsecure' },
    addressId: String(address.id),
    addressSummary: address.summary || '',
    shippingAddress: address.shippingAddress || null,
@@ -302,8 +301,7 @@ export async function POST(request) {
    const adminEmail = process.env.EMAIL_USER;
    const addrSummary = address.summary || '';
    const pmType = paymentMethod?.type || order.payment?.type || '';
-   const pmText = pmType === 'havale' ? 'Havale ve EFT ile Ödeme' :
-    (pmType === 'mailorder' ? 'Kart ile Ödeme' : (pmType || '-'));
+   const pmText = 'Kart ile Ödeme (3D Secure)';
 
    if (adminEmail) {
     adminEmailResult = await sendAdminNewOrderEmail({
@@ -330,9 +328,7 @@ export async function POST(request) {
 
    if (emailNotificationsEnabled && user.email) {
     const addrSummary = address.summary || '';
-    const pmType = paymentMethod?.type || order.payment?.type || '';
-    const pmText = pmType === 'havale' ? 'Havale ve EFT ile Ödeme' :
-     (pmType === 'mailorder' ? 'Kart ile Ödeme' : (pmType || '-'));
+    const pmText = 'Kart ile Ödeme (3D Secure)';
 
     userEmailResult = await sendUserOrderConfirmationEmail({
      userEmail: user.email,
