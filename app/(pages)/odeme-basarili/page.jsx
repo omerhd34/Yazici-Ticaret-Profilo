@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { MdCheckCircle, MdShoppingBag } from "react-icons/md";
 
-export default function OdemeBasariliPage() {
+export const dynamic = 'force-dynamic';
+
+function OdemeBasariliContent() {
  const router = useRouter();
  const searchParams = useSearchParams();
  const orderId = searchParams.get("orderId");
 
  useEffect(() => {
-  // 2 saniye sonra siparişler sayfasına yönlendir
   const timer = setTimeout(() => {
    router.push("/hesabim?tab=siparisler");
   }, 2000);
@@ -57,3 +58,17 @@ export default function OdemeBasariliPage() {
  );
 }
 
+export default function OdemeBasariliPage() {
+ return (
+  <Suspense fallback={
+   <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="text-center">
+     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+     <p className="text-gray-600">Yükleniyor...</p>
+    </div>
+   </div>
+  }>
+   <OdemeBasariliContent />
+  </Suspense>
+ );
+}
