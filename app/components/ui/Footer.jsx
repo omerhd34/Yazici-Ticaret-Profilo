@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { FaFacebook, FaInstagram, FaCcVisa, FaCcMastercard } from "react-icons/fa";
-import { HiMail, HiLocationMarker } from "react-icons/hi";
+import { HiMail, HiLocationMarker, HiPhone } from "react-icons/hi";
 
 const SOCIAL_LINKS = [
  { icon: FaFacebook, href: "https://www.facebook.com/inegolyaziciticaret/?locale=tr_TR", label: "Facebook" },
@@ -120,6 +120,18 @@ const Footer = () => {
           <br />
           No:51, İnegöl/Bursa
          </p>
+        </div>
+       </li>
+       <li className="flex items-start gap-3">
+        <HiPhone size={18} className="mt-0.5 text-indigo-400 shrink-0" />
+        <div className="text-sm">
+         <p className="text-gray-300">0544 796 77 70</p>
+        </div>
+       </li>
+       <li className="flex items-start gap-3">
+        <HiPhone size={18} className="mt-0.5 text-indigo-400 shrink-0" />
+        <div className="text-sm">
+         <p className="text-gray-300">0501 349 69 91</p>
         </div>
        </li>
       </ul>
