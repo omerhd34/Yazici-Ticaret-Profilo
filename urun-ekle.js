@@ -1,5 +1,5 @@
 const axios = require('axios');
-const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
+const BASE_URL = process.env.BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || "https://yazici.gen.tr";
 const ADMIN_COOKIE = process.env.ADMIN_COOKIE || "admin-session=authenticated";
 
 let products;

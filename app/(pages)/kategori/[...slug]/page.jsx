@@ -922,7 +922,7 @@ export default function KategoriPage() {
    return <ProductNotFound />;
   }
 
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000');
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr');
 
   // Breadcrumb items for structured data
   const breadcrumbItems = [
@@ -950,15 +950,6 @@ export default function KategoriPage() {
    name: product.name,
    url: productUrl,
   });
-
-  // Metadata for product detail page
-  const productTitle = product ? `${product.name} - Fiyat ve Özellikler` : '';
-  const productDescription = product
-   ? `${product.name} ${product.brand ? `(${product.brand})` : ''} - ${product.description || 'En uygun fiyat ve hızlı kargo ile Yazıcı Ticaret\'te. Tüm özellikler ve teknik detaylar.'}`
-   : '';
-  const productImage = product && product.images && product.images.length > 0
-   ? product.images[0].startsWith('http') ? product.images[0] : product.images[0]
-   : '/icon.svg';
 
   return (
    <div className="min-h-screen bg-gray-50 py-4 sm:py-6 md:py-8 lg:py-12">

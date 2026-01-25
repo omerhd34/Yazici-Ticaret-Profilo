@@ -57,7 +57,7 @@ export async function POST(request) {
   const iyzicoApiKey = process.env.IYZICO_API_KEY;
   const iyzicoSecretKey = process.env.IYZICO_SECRET_KEY;
   const iyzicoUri = process.env.IYZICO_URI || 'https://sandbox-api.iyzipay.com';
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr';
 
   if (!iyzicoApiKey || !iyzicoSecretKey || iyzicoApiKey === 'your_api_key_here' || iyzicoSecretKey === 'your_secret_key_here') {
    return NextResponse.json(

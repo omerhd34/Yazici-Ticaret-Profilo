@@ -2,7 +2,7 @@ import "./globals.css";
 import ClientProviders from "./ClientProviders";
 
 export const metadata = {
- metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
+ metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr'),
  title: {
   default: 'Yazıcı Ticaret',
  },
@@ -32,7 +32,7 @@ export const metadata = {
  openGraph: {
   type: 'website',
   locale: 'tr_TR',
-  url: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+  url: process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr',
   siteName: 'Yazıcı Ticaret',
   title: 'Yazıcı Ticaret',
   description: 'Profilo ve LG markası beyaz eşya ve elektronik ürünlerinin satışını yapan güvenilir e-ticaret platformu. Tüm Türkiye\'ye nakliye ve montaj hizmeti.',

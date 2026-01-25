@@ -4,13 +4,13 @@ export const metadata = {
  openGraph: {
   title: 'Yazıcı Ticaret',
   description: 'Profilo ve LG markası beyaz eşya ve elektronik ürünlerinde en uygun fiyatlar. Tüm Türkiye\'ye nakliye ve montaj hizmeti.',
-  url: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+  url: process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr',
   siteName: 'Yazıcı Ticaret',
   locale: 'tr_TR',
   type: 'website',
  },
  alternates: {
-  canonical: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+  canonical: process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr',
  },
 };
 

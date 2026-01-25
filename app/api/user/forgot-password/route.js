@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import User from '@/models/User';
 import crypto from 'crypto';
@@ -41,7 +41,7 @@ export async function POST(request) {
   await user.save();
 
   // Reset URL oluştur
-  const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/sifre-sifirla?token=${resetToken}`;
+  const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr'}/sifre-sifirla?token=${resetToken}`;
 
   // E-posta gönder
   try {

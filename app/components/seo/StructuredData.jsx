@@ -6,7 +6,7 @@ export function OrganizationSchema({ baseUrl }) {
  useEffect(() => {
   if (typeof document === 'undefined' || !document.head) return;
 
-  const currentBaseUrl = baseUrl || process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : "http://localhost:3000");
+  const currentBaseUrl = baseUrl || (typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr'));
 
   const script = document.createElement("script");
   script.type = "application/ld+json";
@@ -52,7 +52,7 @@ export function WebSiteSchema({ baseUrl }) {
  useEffect(() => {
   if (typeof document === 'undefined' || !document.head) return;
 
-  const currentBaseUrl = baseUrl || process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : "http://localhost:3000");
+  const currentBaseUrl = baseUrl || (typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr'));
 
   const script = document.createElement("script");
   script.type = "application/ld+json";
@@ -98,7 +98,7 @@ export function ProductSchema({ product, baseUrl, productUrl: propProductUrl }) 
   const availability = (product.stock || 0) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock";
 
   // Ürün URL'ini getProductUrl ile oluştur
-  const currentBaseUrl = baseUrl || process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : "http://localhost:3000");
+  const currentBaseUrl = baseUrl || (typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr'));
   let productUrl = propProductUrl;
 
   if (!productUrl) {
@@ -172,7 +172,7 @@ export function BreadcrumbSchema({ items, baseUrl }) {
  useEffect(() => {
   if (!items || items.length === 0 || typeof document === 'undefined' || !document.head) return;
 
-  const currentBaseUrl = baseUrl || process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : "http://localhost:3000");
+  const currentBaseUrl = baseUrl || (typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr'));
 
   const script = document.createElement("script");
   script.type = "application/ld+json";

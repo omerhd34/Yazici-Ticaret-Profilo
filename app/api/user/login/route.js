@@ -59,7 +59,7 @@ export async function POST(request) {
    }
 
    // Email gönder
-   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr';
    const verificationLink = `${baseUrl}/api/user/verify-email?token=${user._id}&code=${codeString}`;
 
    try {

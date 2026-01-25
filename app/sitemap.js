@@ -4,7 +4,7 @@ import { MENU_ITEMS } from '@/app/utils/menuItems';
 import { getProductUrl } from '@/app/utils/productUrl';
 
 export default async function sitemap() {
- const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr';
 
  // Statik sayfalar
  const staticPages = [

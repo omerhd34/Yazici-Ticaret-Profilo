@@ -245,7 +245,7 @@ export async function PUT(request, { params }) {
      if (user.notificationPreferences?.campaignNotifications && user.notificationPreferences?.emailNotifications && user.email) {
       try {
        const relativeUrl = getProductUrl(product);
-       const productUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${relativeUrl}`;
+       const productUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr'}${relativeUrl}`;
        await sendPriceChangeEmail(
         user.email,
         user.name,
@@ -277,7 +277,7 @@ export async function PUT(request, { params }) {
      if (user.notificationPreferences?.campaignNotifications && user.notificationPreferences?.emailNotifications && user.email) {
       try {
        const relativeUrl = getProductUrl(product);
-       const productUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${relativeUrl}`;
+       const productUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr'}${relativeUrl}`;
        await sendPriceChangeEmail(
         user.email,
         user.name,
@@ -314,7 +314,7 @@ export async function PUT(request, { params }) {
      if (user.notificationPreferences?.campaignNotifications && user.notificationPreferences?.emailNotifications && user.email) {
       try {
        const relativeUrl = getProductUrl(product);
-       const productUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${relativeUrl}`;
+       const productUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr'}${relativeUrl}`;
        await sendStockAvailableEmail(
         user.email,
         user.name,
@@ -343,7 +343,7 @@ export async function PUT(request, { params }) {
      if (user.notificationPreferences?.campaignNotifications && user.notificationPreferences?.emailNotifications && user.email) {
       try {
        const relativeUrl = getProductUrl(product);
-       const productUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${relativeUrl}`;
+       const productUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr'}${relativeUrl}`;
        await sendStockAvailableEmail(
         user.email,
         user.name,
