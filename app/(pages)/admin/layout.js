@@ -30,7 +30,6 @@ export default function AdminLayout({ children }) {
   checkAuth();
  }, [router]);
 
- // Auth kontrolü yapılırken veya authenticated değilse loading göster
  if (authLoading || !isAuthenticated) {
   return (
    <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -44,7 +43,6 @@ export default function AdminLayout({ children }) {
   );
  }
 
- // Sadece authenticated olduğunda header, footer ve children render et
  return (
   <div className="min-h-screen flex flex-col bg-gray-50">
    <AdminHeader />
