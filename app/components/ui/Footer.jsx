@@ -103,6 +103,18 @@ const Footer = () => {
         </Link>
        </li>
        <li className="flex items-start gap-3">
+        <HiPhone size={18} className="mt-0.5 text-indigo-400 shrink-0" />
+        <Link href="tel:+905447967770" className="text-sm text-gray-300 hover:text-indigo-400 transition">
+         0544 796 77 70
+        </Link>
+       </li>
+       <li className="flex items-start gap-3">
+        <HiPhone size={18} className="mt-0.5 text-indigo-400 shrink-0" />
+        <Link href="tel:+905013496991" className="text-sm text-gray-300 hover:text-indigo-400 transition">
+         0501 349 69 91
+        </Link>
+       </li>
+       <li className="flex items-start gap-3">
         <HiLocationMarker size={18} className="mt-0.5 text-indigo-400 shrink-0" />
         <div className="text-sm">
          <p className="text-gray-300">
@@ -122,18 +134,6 @@ const Footer = () => {
          </p>
         </div>
        </li>
-       <li className="flex items-start gap-3">
-        <HiPhone size={18} className="mt-0.5 text-indigo-400 shrink-0" />
-        <div className="text-sm">
-         <p className="text-gray-300">0544 796 77 70</p>
-        </div>
-       </li>
-       <li className="flex items-start gap-3">
-        <HiPhone size={18} className="mt-0.5 text-indigo-400 shrink-0" />
-        <div className="text-sm">
-         <p className="text-gray-300">0501 349 69 91</p>
-        </div>
-       </li>
       </ul>
      </div>
     </div>
@@ -146,21 +146,21 @@ const Footer = () => {
       <div className="flex flex-col items-center gap-5 py-4">
        <p className="text-sm text-gray-400 font-medium tracking-wide">Güvenli Ödeme</p>
        <div className="flex items-center justify-center gap-6 flex-wrap">
-        <div className="flex items-center justify-center bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 h-16 w-20">
+        <div className="flex items-center justify-center bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 h-12 w-20">
          <FaCcVisa
           size={48}
           className="text-blue-600"
           title="Visa"
          />
         </div>
-        <div className="flex items-center justify-center bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 h-16 w-20">
+        <div className="flex items-center justify-center bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 h-12 w-20">
          <FaCcMastercard
           size={48}
           className="text-orange-500"
           title="Mastercard"
          />
         </div>
-        <div className="flex items-center justify-center bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 h-16 w-20">
+        <div className="flex items-center justify-center bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 h-12 w-20">
          <Image
           src="/troy.png"
           alt="Troy"
@@ -169,7 +169,7 @@ const Footer = () => {
           className="object-contain w-full h-full"
          />
         </div>
-        <div className="flex items-center justify-center bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 h-16 w-20">
+        <div className="flex items-center justify-center bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 h-12 w-20">
          <Image
           src="/iyzico.png"
           alt="iyzico ile Öde"
