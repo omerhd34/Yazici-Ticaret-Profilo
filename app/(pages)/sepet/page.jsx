@@ -154,7 +154,6 @@ export default function SepetPage() {
     setCartItems(cart);
    }
   } catch (error) {
-   console.error("Sepet yüklenirken hata:", error);
    setCartItems(cart);
   } finally {
    setLoading(false);

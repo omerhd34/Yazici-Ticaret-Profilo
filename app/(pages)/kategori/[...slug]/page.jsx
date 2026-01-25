@@ -98,7 +98,7 @@ export default function KategoriPage() {
  const fetchProducts = useCallback(async () => {
   // Sadece browser'da çalıştır
   if (typeof window === 'undefined') return;
-  
+
   setLoading(true);
   try {
    let category = "";
