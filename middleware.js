@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-export async function middleware(request) {
+export function middleware(request) {
   // Sadece API route'ları için CORS header'ları ekle
   if (request.nextUrl.pathname.startsWith('/api/')) {
     // Origin'i belirle: request'ten gelen origin veya base URL
@@ -35,6 +35,7 @@ export async function middleware(request) {
     }
 
     // Normal request'ler için response'u oluştur ve header'ları ekle
+    // API route'unun çalışmasına izin vermek için NextResponse.next() kullan
     const response = NextResponse.next();
     response.headers.set('Access-Control-Allow-Origin', origin);
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
