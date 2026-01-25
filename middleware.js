@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 
 export function middleware(request) {
-  // Sadece API route'ları için CORS header'ları ekle
-  if (request.nextUrl.pathname.startsWith('/api/')) {
-    // Origin'i belirle: request'ten gelen origin veya base URL
+  // API route'ları için sadece OPTIONS (preflight) isteklerini handle et
+  // Diğer istekler için API route'larının kendi CORS header'larını kullanmasına izin ver
+  const pathname = request.nextUrl.pathname;
+  
+  if (pathname.startsWith('/api/') && request.method === 'OPTIONS') {
+    // Preflight request için CORS header'ları ekle
     const requestOrigin = request.headers.get('origin');
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr';
     
@@ -14,40 +17,30 @@ export function middleware(request) {
       'http://127.0.0.1:3000',
     ];
     
-    // Origin kontrolü: eğer request'ten gelen origin izin verilenler arasındaysa kullan, değilse base URL kullan
+    // Origin kontrolü
     let origin = baseUrl;
     if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
       origin = requestOrigin;
     }
     
-    // Preflight request için
-    if (request.method === 'OPTIONS') {
-      return new NextResponse(null, {
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': origin,
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-          'Access-Control-Allow-Credentials': 'true',
-          'Access-Control-Max-Age': '86400',
-        },
-      });
-    }
-
-    // Normal request'ler için response'u oluştur ve header'ları ekle
-    // API route'unun çalışmasına izin vermek için NextResponse.next() kullan
-    const response = NextResponse.next();
-    response.headers.set('Access-Control-Allow-Origin', origin);
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    response.headers.set('Access-Control-Allow-Credentials', 'true');
-    
-    return response;
+    return new NextResponse(null, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Max-Age': '86400',
+      },
+    });
   }
 
+  // Diğer tüm istekler için normal devam et (API route'ları dahil)
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: '/api/:path*',
+  matcher: [
+    '/api/:path*',
+  ],
 };
