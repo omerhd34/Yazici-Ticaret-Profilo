@@ -156,7 +156,7 @@ const ProductSchema = new mongoose.Schema({
  tags: [{
   type: String,
  }],
- isNew: {
+ isNewProduct: {
   type: Boolean,
   default: false,
  },

@@ -21,7 +21,7 @@ export default function AnaSayfa() {
   try {
    const [featuredRes, newRes, discountedRes] = await Promise.all([
     axiosInstance.get("/api/products?isFeatured=true"),
-    axiosInstance.get("/api/products?isNew=true"),
+    axiosInstance.get("/api/products?isNewProduct=true"),
     axiosInstance.get("/api/products?category=İndirimler"),
    ]);
 

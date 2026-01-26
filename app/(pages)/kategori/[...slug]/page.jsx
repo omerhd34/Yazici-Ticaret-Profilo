@@ -176,7 +176,7 @@ export default function KategoriPage() {
    let url = "/api/products?limit=1000";
 
    if (categorySlug === "yeni" || categorySlug === "yeniler") {
-    url += `&isNew=true`;
+    url += `&isNewProduct=true`;
    } else if (categorySlug === "indirim") {
     url += `&category=${encodeURIComponent(category)}`;
    } else {
@@ -388,7 +388,7 @@ export default function KategoriPage() {
       let isValid = true;
 
       if (filters.specialFilters.includes("new")) {
-       isValid = isValid && p.isNew === true;
+       isValid = isValid && p.isNewProduct === true;
       }
 
       if (filters.specialFilters.includes("discounted")) {
@@ -984,7 +984,7 @@ export default function KategoriPage() {
         images={colorImages}
         selectedImage={selectedImage}
         onImageSelect={setSelectedImage}
-        isNew={product.isNew}
+        isNew={product.isNewProduct}
         discountPercentage={discountPercentage}
         productName={product.name}
        />

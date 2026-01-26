@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { HiCheckCircle, HiXCircle, HiShieldCheck, HiMail, HiPhone, HiInformationCircle, HiClock, HiScale, HiTruck, HiCube } from "react-icons/hi";
+import { HiCheckCircle, HiXCircle, HiShieldCheck, HiInformationCircle, HiScale, HiTruck, HiCube } from "react-icons/hi";
 import TermsHeader from "@/app/components/policy/TermsHeader";
 import TermsIntroduction from "@/app/components/policy/TermsIntroduction";
 import PolicySection from "@/app/components/policy/PolicySection";
@@ -38,7 +38,7 @@ export default function KullanimKosullariPage() {
          </a>
         </p>
         <p className="text-gray-700">
-         <strong>Telefon:</strong> 0544 796 77 70
+         <strong>Telefon:</strong> 0544 796 77 70 ve 0501 349 69 91
         </p>
        </div>
       </>

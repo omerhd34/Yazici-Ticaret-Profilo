@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import Iyzipay from 'iyzipay';
+import { createIyzicoClient } from '@/lib/iyzico';
 import dbConnect from '@/lib/dbConnect';
 import User from '@/models/User';
 
@@ -54,24 +54,18 @@ export async function POST(request) {
    );
   }
 
-  const iyzicoApiKey = process.env.IYZICO_API_KEY;
-  const iyzicoSecretKey = process.env.IYZICO_SECRET_KEY;
-  const iyzicoUri = process.env.IYZICO_URI || 'https://sandbox-api.iyzipay.com';
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr';
 
-  if (!iyzicoApiKey || !iyzicoSecretKey || iyzicoApiKey === 'your_api_key_here' || iyzicoSecretKey === 'your_secret_key_here') {
+  // iyzico client'ı oluştur
+  let iyzico;
+  try {
+   iyzico = createIyzicoClient();
+  } catch (error) {
    return NextResponse.json(
-    { success: false, message: 'iyzipay API key ve secret key ayarları yapılmadı' },
+    { success: false, message: error.message || 'İyzico yapılandırma hatası' },
     { status: 500 }
    );
   }
-
-  // iyzico client'ı oluştur
-  const iyzipay = new Iyzipay({
-   apiKey: iyzicoApiKey,
-   secretKey: iyzicoSecretKey,
-   uri: iyzicoUri
-  });
 
   // Kart bilgilerini hazırla
   const cardNumber = cardData.cardNumber?.replace(/\s/g, '') || '';
@@ -153,41 +147,27 @@ export async function POST(request) {
    callbackUrl: `${baseUrl}/odeme-callback?orderId=${referenceNo}`
   };
 
-  // iyzico Init 3DS API çağrısı (Promise wrapper)
-  return new Promise((resolve) => {
-   iyzipay.threedsInitialize.create(iyzicoRequest, (err, result) => {
-    if (err) {
-     console.error('iyzico 3D Secure başlatma hatası:', err);
-     resolve(NextResponse.json(
-      {
-       success: false,
-       message: err.message || '3D Secure başlatılamadı',
-       error: err
-      },
-      { status: 400 }
-     ));
-     return;
-    }
+  // iyzico Init 3DS API çağrısı
+  const result = await iyzico.threedsInitialize(iyzicoRequest);
 
-    if (result.status === 'success' && result.htmlContent) {
-     resolve(NextResponse.json({
-      success: true,
-      htmlContent: result.htmlContent,
-      conversationId: result.conversationId,
-      paymentId: result.paymentId
-     }));
-    } else {
-     resolve(NextResponse.json(
-      {
-       success: false,
-       message: result.errorMessage || '3D Secure başlatılamadı',
-       errorCode: result.errorCode
-      },
-      { status: 400 }
-     ));
-    }
+  if (result.status === 'success' && result.htmlContent) {
+   return NextResponse.json({
+    success: true,
+    htmlContent: result.htmlContent,
+    conversationId: result.conversationId,
+    paymentId: result.paymentId
    });
-  });
+  } else {
+   console.error('iyzico 3D Secure başlatma hatası:', result);
+   return NextResponse.json(
+    {
+     success: false,
+     message: result.errorMessage || '3D Secure başlatılamadı',
+     errorCode: result.errorCode
+    },
+    { status: 400 }
+   );
+  }
  } catch (error) {
   console.error('3D Secure başlatma hatası:', error);
   return NextResponse.json(

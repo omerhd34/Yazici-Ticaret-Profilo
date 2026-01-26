@@ -27,7 +27,7 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const category = searchParams.get('category');
   const subCategory = searchParams.get('subCategory');
-  const isNew = searchParams.get('isNew');
+  const isNew = searchParams.get('isNewProduct');
   const isFeatured = searchParams.get('isFeatured');
   const search = searchParams.get('search') || searchParams.get('q');
   const limit = parseInt(searchParams.get('limit') || '50000');
@@ -52,7 +52,7 @@ export async function GET(request) {
 
   // Özel kategoriler için özel filtreleme
   if (category === 'Yeniler' || category === 'Yeniler') {
-   query.isNew = true;
+   query.isNewProduct = true;
   } else if (category === 'İndirimler') {
    query.$and = [
     { discountPrice: { $exists: true, $ne: null, $gt: 0 } },
@@ -69,7 +69,7 @@ export async function GET(request) {
   }
 
   if (isNew === 'true') {
-   query.isNew = true;
+   query.isNewProduct = true;
   }
 
   if (isFeatured === 'true') {
@@ -218,7 +218,7 @@ export async function POST(request) {
    brand: body.brand || '',
    material: body.material || '',
    tags: body.tags || [],
-   isNew: body.isNew || false,
+   isNewProduct: body.isNewProduct || false,
    isFeatured: body.isFeatured || false,
    serialNumber: body.serialNumber || '', // Opsiyonel, artık renk seviyesinde tutuluyor
    dimensions: body.dimensions || { height: null, width: null, depth: null },

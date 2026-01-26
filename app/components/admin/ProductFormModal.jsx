@@ -94,7 +94,7 @@ export default function ProductFormModal({ show, editingProduct, onClose, onSucc
   tags: "",
   serialNumber: "",
   specifications: [],
-  isNew: false,
+  isNewProduct: false,
   isFeatured: false,
  });
 
@@ -154,7 +154,7 @@ export default function ProductFormModal({ show, editingProduct, onClose, onSucc
     tags: editingProduct.tags ? editingProduct.tags.join(", ") : "",
     serialNumber: editingProduct.serialNumber ? String(editingProduct.serialNumber).trim() : "",
     specifications: editingProduct.specifications && Array.isArray(editingProduct.specifications) ? editingProduct.specifications : [],
-    isNew: editingProduct.isNew || false,
+    isNewProduct: editingProduct.isNewProduct || false,
     isFeatured: editingProduct.isFeatured || false,
    });
    setImagePreview(editingProduct.images);
@@ -175,7 +175,7 @@ export default function ProductFormModal({ show, editingProduct, onClose, onSucc
     tags: "",
     serialNumber: "",
     specifications: [],
-    isNew: false,
+    isNewProduct: false,
     isFeatured: false,
    });
    setImagePreview([]);
@@ -1161,8 +1161,8 @@ export default function ProductFormModal({ show, editingProduct, onClose, onSucc
       <label className="inline-flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
        <input
         type="checkbox"
-        checked={Boolean(form.isNew)}
-        onChange={(e) => setForm({ ...form, isNew: e.target.checked })}
+        checked={Boolean(form.isNewProduct)}
+        onChange={(e) => setForm({ ...form, isNewProduct: e.target.checked })}
         className="cursor-pointer"
        />
        Yeni Ürün

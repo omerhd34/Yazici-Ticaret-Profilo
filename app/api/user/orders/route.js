@@ -254,19 +254,12 @@ export async function POST(request) {
   user.orders.unshift(order);
   await user.save();
 
-  // NOT: Stok azaltma ve e-posta gönderme işlemleri
-  // ödeme başarılı olduğunda (3ds-charge API'sinde) yapılacak
-  // Böylece kullanıcı ödeme yapmadan çıkarsa stoklar etkilenmeyecek
-
   return NextResponse.json({
    success: true,
    message: 'Sipariş oluşturuldu',
    orderId,
    priceUpdated,
    totals: { itemsTotal: Math.round(itemsTotal * 100) / 100, shippingCost, grandTotal: serverGrandTotal },
-   adminEmail: adminEmailResult
-    ? { success: Boolean(adminEmailResult.success), error: adminEmailResult.error || null }
-    : null,
   });
  } catch (error) {
   return NextResponse.json({ success: false, message: 'Sipariş oluşturulamadı', error: error.message }, { status: 500 });

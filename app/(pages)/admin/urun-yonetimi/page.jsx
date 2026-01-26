@@ -189,7 +189,7 @@ export default function AdminUrunYonetimiPage() {
      return products.filter((product) => product.isFeatured === true).length;
     })()}
     newProducts={(() => {
-     return products.filter((product) => product.isNew === true).length;
+     return products.filter((product) => product.isNewProduct === true).length;
     })()}
    />
 

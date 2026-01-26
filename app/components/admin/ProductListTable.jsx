@@ -65,20 +65,20 @@ export default function ProductListTable({ products, onEdit, onDelete, onAddNew,
     }
    } else {
     // Renk yoksa normal stok kontrolü
-   const productStock = product.stock !== undefined ? Number(product.stock) || 0 : 0;
-   switch (selectedStockFilter) {
-    case 'inStock':
-     if (productStock <= 0) return false;
-     break;
-    case 'outOfStock':
-     if (productStock > 0) return false;
-     break;
-    case 'lowStock':
-     if (productStock >= 10) return false;
-     break;
-    default:
-     break;
-   }
+    const productStock = product.stock !== undefined ? Number(product.stock) || 0 : 0;
+    switch (selectedStockFilter) {
+     case 'inStock':
+      if (productStock <= 0) return false;
+      break;
+     case 'outOfStock':
+      if (productStock > 0) return false;
+      break;
+     case 'lowStock':
+      if (productStock >= 10) return false;
+      break;
+     default:
+      break;
+    }
    }
   }
 
@@ -92,10 +92,10 @@ export default function ProductListTable({ products, onEdit, onDelete, onAddNew,
   }
 
   if (selectedNewFilter) {
-   if (selectedNewFilter === 'new' && !product.isNew) {
+   if (selectedNewFilter === 'new' && !product.isNewProduct) {
     return false;
    }
-   if (selectedNewFilter === 'notNew' && product.isNew) {
+   if (selectedNewFilter === 'notNew' && product.isNewProduct) {
     return false;
    }
   }
@@ -487,7 +487,7 @@ export default function ProductListTable({ products, onEdit, onDelete, onAddNew,
               Stok Yok
              </span>
             )}
-            {product.isNew && (
+            {product.isNewProduct && (
              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
               <MdNewReleases size={14} />
               Yeni Ürün

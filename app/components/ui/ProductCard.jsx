@@ -101,7 +101,7 @@ export default function ProductCard({ product, priority = false, onColorChange, 
  return (
   <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 relative h-full flex flex-col">
    <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
-    {product.isNew && (
+    {product.isNewProduct && (
      <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full text-center flex items-center justify-center">
       YENİ
      </span>

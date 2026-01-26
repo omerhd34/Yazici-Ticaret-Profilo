@@ -30,62 +30,45 @@ export async function GET() {
    ProductRequest.countDocuments(),
   ]);
 
-  const agg = await User.aggregate([
-   { $unwind: { path: "$orders", preserveNullAndEmptyArrays: true } },
-   {
-    $project: {
-     status: { $ifNull: ["$orders.status", ""] },
-     hasOrder: { $cond: [{ $ifNull: ["$orders.orderId", false] }, 1, 0] },
-    },
-   },
-   {
-    $group: {
-     _id: null,
-     totalOrders: { $sum: "$hasOrder" },
-     pendingOrders: {
-      $sum: {
-       $cond: [
-        { $regexMatch: { input: "$status", regex: /Beklemede/ } },
-        1,
-        0,
-       ],
-      },
-     },
-     shippedOrders: {
-      $sum: {
-       $cond: [
-        { $regexMatch: { input: "$status", regex: /Kargoya/ } },
-        1,
-        0,
-       ],
-      },
-     },
-     deliveredOrders: {
-      $sum: {
-       $cond: [
-        { $regexMatch: { input: "$status", regex: /Teslim/ } },
-        1,
-        0,
-       ],
-      },
-     },
-     cancelledOrders: {
-      $sum: {
-       $cond: [
-        { $regexMatch: { input: "$status", regex: /(İptal|iptal)/ } },
-        1,
-        0,
-       ],
-      },
-     },
-    },
-   },
-  ]);
-  const totalOrders = agg?.[0]?.totalOrders || 0;
-  const pendingOrders = agg?.[0]?.pendingOrders || 0;
-  const shippedOrders = agg?.[0]?.shippedOrders || 0;
-  const deliveredOrders = agg?.[0]?.deliveredOrders || 0;
-  const cancelledOrders = agg?.[0]?.cancelledOrders || 0;
+  // Tüm kullanıcıları ve siparişlerini al
+  const users = await User.find({}, 'orders').lean();
+
+  // Tüm siparişleri topla ve filtrele
+  let totalOrders = 0;
+  let pendingOrders = 0;
+  let shippedOrders = 0;
+  let deliveredOrders = 0;
+  let cancelledOrders = 0;
+
+  users.forEach(user => {
+   if (!user.orders || !Array.isArray(user.orders)) return;
+
+   user.orders.forEach(order => {
+    if (!order || !order.orderId) return;
+
+    const status = order.status || '';
+    const hasPaidAt = order.payment && (order.payment.paidAt || order.payment.transactionId);
+
+    // Geçersiz siparişleri atla
+    if (status === 'Ödeme Bekleniyor' || status === 'Ödeme Başarısız') {
+     return;
+    }
+
+    // Beklemede ama ödeme bilgisi yoksa atla
+    if (status === 'Beklemede' && !hasPaidAt) {
+     return;
+    }
+
+    // Geçerli sipariş - say
+    totalOrders++;
+
+    // Durum bazlı sayım
+    if (status === 'Beklemede') pendingOrders++;
+    else if (status.includes('Kargoya')) shippedOrders++;
+    else if (status.includes('Teslim')) deliveredOrders++;
+    else if (status.includes('İptal') || status.includes('iptal')) cancelledOrders++;
+   });
+  });
 
   return NextResponse.json({
    success: true,
