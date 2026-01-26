@@ -3,6 +3,8 @@ import { cookies } from 'next/headers';
 import Iyzipay from 'iyzipay';
 import dbConnect from '@/lib/dbConnect';
 import User from '@/models/User';
+import Product from '@/models/Product';
+import { sendAdminNewOrderEmail, sendUserOrderConfirmationEmail } from '@/lib/notifications';
 
 export async function POST(request) {
  try {
@@ -147,10 +149,10 @@ export async function POST(request) {
     }
 
     if (result.status === 'success') {
-     // Ödeme başarılı
+     // Ödeme başarılı - durumu güncelle
      const updateData = {
       $set: {
-       'orders.$.status': 'Ödeme Alındı',
+       'orders.$.status': 'Beklemede',
        'orders.$.payment': {
         type: '3dsecure',
         transactionId: result.paymentId,
@@ -171,6 +173,99 @@ export async function POST(request) {
       { _id: user._id, 'orders.orderId': orderId },
       updateData
      );
+
+     // Ödeme başarılı olduğuna göre stokları azalt
+     try {
+      for (const item of order.items) {
+       const productId = item.productId;
+       const quantity = item.quantity || 1;
+
+       if (productId) {
+        // Önce ürünü getir
+        const product = await Product.findById(productId);
+        if (!product) continue;
+
+        // Ana ürünün stokunu azalt
+        const updateData = {
+         $inc: {
+          soldCount: quantity,
+          stock: -quantity
+         }
+        };
+
+        // Ana ürün stokunu güncelle
+        await Product.findByIdAndUpdate(
+         productId,
+         updateData,
+         { new: true }
+        );
+
+        // Eğer renk seçilmişse, o rengin stokunu da azalt
+        if (item.color && product.colors && Array.isArray(product.colors)) {
+         const colorName = String(item.color).trim();
+         // Renk bazlı stok güncellemesi - positional operator kullan
+         await Product.updateOne(
+          {
+           _id: productId,
+           'colors.name': colorName
+          },
+          {
+           $inc: { 'colors.$.stock': -quantity }
+          }
+         );
+        }
+       }
+      }
+     } catch (stockUpdateError) {
+      console.error('Stok güncelleme hatası:', stockUpdateError);
+      // Stok güncelleme hatası - sessizce handle et
+     }
+
+     // Admin'e e-posta gönder
+     try {
+      const adminEmail = process.env.EMAIL_USER;
+      const addrSummary = order.addressSummary || '';
+      const pmText = 'Kart ile Ödeme (3D Secure)';
+
+      if (adminEmail) {
+       await sendAdminNewOrderEmail({
+        adminEmail,
+        orderId: order.orderId,
+        userName: user.name,
+        userEmail: user.email,
+        userPhone: user.phone,
+        total: order.total,
+        paymentMethod: pmText,
+        addressSummary: addrSummary,
+        items: order.items,
+       });
+      }
+     } catch (e) {
+      console.error('Admin e-posta gönderme hatası:', e);
+     }
+
+     // Müşteriye e-posta gönder
+     try {
+      const emailNotificationsEnabled = user.notificationPreferences?.emailNotifications !== false;
+
+      if (emailNotificationsEnabled && user.email) {
+       const addrSummary = order.addressSummary || '';
+       const pmText = 'Kart ile Ödeme (3D Secure)';
+
+       await sendUserOrderConfirmationEmail({
+        userEmail: user.email,
+        userName: user.name,
+        orderId: order.orderId,
+        orderDate: order.date,
+        total: order.total,
+        paymentMethod: pmText,
+        addressSummary: addrSummary,
+        items: order.items,
+       });
+      }
+     } catch (e) {
+      console.error('Kullanıcı e-posta gönderme hatası:', e);
+     }
 
      resolve(NextResponse.json({
       success: true,

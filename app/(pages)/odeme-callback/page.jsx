@@ -41,7 +41,15 @@ export default function OdemeCallbackPage() {
     if (data.success) {
      setStatus("success");
      setMessage("Ödeme başarıyla tamamlandı!");
-     clearCart();
+     
+     // Sepeti temizle
+     try {
+      await clearCart();
+      console.log("Sepet başarıyla temizlendi");
+     } catch (error) {
+      console.error("Sepet temizleme hatası:", error);
+     }
+     
      sessionStorage.removeItem("pendingOrderId");
      
      // 2 saniye sonra siparişler sayfasına yönlendir

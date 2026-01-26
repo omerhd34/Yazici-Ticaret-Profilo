@@ -1,5 +1,6 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import axiosInstance from "@/lib/axios";
 
 const CartContext = createContext();
@@ -8,10 +9,14 @@ const getCartKey = (uid) => (uid ? `cart_${uid}` : "cart");
 const getFavKey = (uid) => (uid ? `favorites_${uid}` : "favorites");
 
 export function CartProvider({ children }) {
+ const pathname = usePathname();
  const [userId, setUserId] = useState(null);
  const [cart, setCart] = useState([]);
  const [favorites, setFavorites] = useState([]);
  const [hasLoaded, setHasLoaded] = useState(false);
+
+ // Admin sayfalarında sepet/favoriler gerekmez
+ const isAdminPage = pathname?.startsWith('/admin');
 
  // Auth kontrolü: userId al, ardından ilgili sepet/favorileri yükle
  useEffect(() => {
@@ -51,11 +56,28 @@ export function CartProvider({ children }) {
    }
   };
   init();
+
+  // Logout event dinleyicisi
+  const handleLogout = () => {
+   setUserId(null);
+   setCart([]);
+   setFavorites([]);
+  };
+
+  if (globalThis.window) {
+   globalThis.window.addEventListener('logout', handleLogout);
+  }
+
+  return () => {
+   if (globalThis.window) {
+    globalThis.window.removeEventListener('logout', handleLogout);
+   }
+  };
  }, []);
 
  // Sepet verilerini veritabanından yükle ve senkronize et (giriş yapılmışsa)
  useEffect(() => {
-  if (typeof globalThis.window === "undefined" || !hasLoaded) return;
+  if (typeof globalThis.window === "undefined" || !hasLoaded || isAdminPage) return;
   const cKey = getCartKey(userId);
 
   let isFetching = false;
@@ -77,22 +99,29 @@ export function CartProvider({ children }) {
      })
      .filter(Boolean);
 
-    if (!userId) {
-     isFetching = false;
-     return;
-    }
-
     let dbCartIds = [];
-    try {
-     const res = await axiosInstance.get("/api/user/cart");
-     const d = res.data;
-     if (d.success && d.cart?.length) dbCartIds = d.cart.map((id) => String(id)).filter(Boolean);
-    } catch (_) {
-     if (localCartIds.length > 0) {
-      try {
-       await axiosInstance.put("/api/user/cart", { productIds: localCartIds });
-      } catch (__) { }
+    // Sadece kullanıcı giriş yaptıysa veritabanından sepeti getir
+    if (userId) {
+     try {
+      const res = await axiosInstance.get("/api/user/cart");
+      const d = res.data;
+      if (d.success && d.cart?.length) dbCartIds = d.cart.map((id) => String(id)).filter(Boolean);
+     } catch (error_) {
+      // 401 hatası = kullanıcı authenticated değil, sadece localStorage kullan
+      if (error_?.response?.status === 401) {
+       isFetching = false;
+       return;
+      }
+      if (localCartIds.length > 0) {
+       try {
+        await axiosInstance.put("/api/user/cart", { productIds: localCartIds });
+       } catch (__) { }
+      }
+      isFetching = false;
+      return;
      }
+    } else {
+     // Kullanıcı giriş yapmamış, sadece localStorage kullan
      isFetching = false;
      return;
     }
@@ -123,7 +152,7 @@ export function CartProvider({ children }) {
    globalThis.removeEventListener("storage", onStorage);
    globalThis.removeEventListener("cartUpdated", onCartUpdate);
   };
- }, [userId, hasLoaded]);
+ }, [userId, hasLoaded, isAdminPage]);
 
  // Logout: sepet/favoriler silinmez (kullanıcı tekrar girişte kendi sepeti yüklenecek)
  useEffect(() => {
@@ -133,7 +162,7 @@ export function CartProvider({ children }) {
  }, []);
 
  useEffect(() => {
-  if (typeof window === "undefined" || !hasLoaded) return;
+  if (typeof window === "undefined" || !hasLoaded || isAdminPage) return;
   const fKey = getFavKey(userId);
 
   let isFetching = false;
@@ -163,12 +192,21 @@ export function CartProvider({ children }) {
     const allProductIds = new Set(allProducts.map((p) => String(p._id)));
 
     let dbFavoriteIds = [];
-    try {
-     const res = await axiosInstance.get("/api/user/favorites");
-     const data = res.data;
-     if (data.success && data.favorites?.length)
-      dbFavoriteIds = data.favorites.map((fav) => String(fav._id || fav)).filter(Boolean);
-    } catch (error_) { }
+    // Sadece kullanıcı giriş yaptıysa veritabanından favorileri getir
+    if (userId) {
+     try {
+      const res = await axiosInstance.get("/api/user/favorites");
+      const data = res.data;
+      if (data.success && data.favorites?.length)
+       dbFavoriteIds = data.favorites.map((fav) => String(fav._id || fav)).filter(Boolean);
+     } catch (error_) {
+      // 401 hatası = kullanıcı authenticated değil, favorileri sadece localStorage'dan al
+      if (error_?.response?.status === 401) {
+       // Kullanıcı logout olmuş, sadece local favorileri kullan
+       dbFavoriteIds = [];
+      }
+     }
+    }
 
     const localFav = JSON.parse(localStorage.getItem(fKey) || "[]");
     const localIds = localFav
@@ -208,7 +246,7 @@ export function CartProvider({ children }) {
    globalThis.removeEventListener("storage", onStorage);
    globalThis.removeEventListener("favoritesUpdated", onFavUpdate);
   };
- }, [userId, hasLoaded]);
+ }, [userId, hasLoaded, isAdminPage]);
 
  const updateCartPrices = async () => {
   if (cart.length === 0) return;
@@ -268,7 +306,7 @@ export function CartProvider({ children }) {
  };
 
  useEffect(() => {
-  if (typeof globalThis.window === "undefined" || cart.length === 0) return;
+  if (typeof globalThis.window === "undefined" || cart.length === 0 || isAdminPage) return;
 
   const timeoutId = setTimeout(() => {
    updateCartPrices();
@@ -299,27 +337,27 @@ export function CartProvider({ children }) {
    globalThis.removeEventListener("cartUpdated", handleCartUpdate);
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [cart.length]);
+ }, [cart.length, isAdminPage]);
 
  useEffect(() => {
-  if (typeof globalThis.window === "undefined" || !hasLoaded) return;
+  if (typeof globalThis.window === "undefined" || !hasLoaded || isAdminPage) return;
   const cKey = getCartKey(userId);
   if (cart.length > 0) {
    localStorage.setItem(cKey, JSON.stringify(cart));
   } else {
    localStorage.removeItem(cKey);
   }
- }, [cart, userId, hasLoaded]);
+ }, [cart, userId, hasLoaded, isAdminPage]);
 
  useEffect(() => {
-  if (typeof globalThis.window === "undefined" || !hasLoaded) return;
+  if (typeof globalThis.window === "undefined" || !hasLoaded || isAdminPage) return;
   const fKey = getFavKey(userId);
   if (favorites.length > 0) {
    localStorage.setItem(fKey, JSON.stringify(favorites));
   } else {
    localStorage.removeItem(fKey);
   }
- }, [favorites, userId, hasLoaded]);
+ }, [favorites, userId, hasLoaded, isAdminPage]);
 
  const addToCart = async (product, selectedSize = null, selectedColor = null, quantity = 1) => {
   if (product.stock === 0 || product.stock < quantity) {
@@ -370,7 +408,8 @@ export function CartProvider({ children }) {
     const productIds = newCart.map(item => String(item._id || item.id)).filter(Boolean);
     await axiosInstance.put("/api/user/cart", { productIds });
    } catch (error) {
-    // Sepet veritabanına kaydedilemedi - sessizce handle et
+    // 401 hatası = kullanıcı authenticated değil, sessizce devam et
+    // Sepet veritabanına kaydedilemedi - localStorage'da kalacak
    }
   }
  };
@@ -402,6 +441,7 @@ export function CartProvider({ children }) {
    const productIds = newCart.map(item => String(item._id || item.id)).filter(Boolean);
    await axiosInstance.put("/api/user/cart", { productIds });
   } catch (error) {
+   // 401 hatası = kullanıcı authenticated değil, sessizce devam et
    // Giriş yapılmamışsa veya hata varsa sessizce devam et
   }
  };
@@ -432,12 +472,49 @@ export function CartProvider({ children }) {
 
  const clearCart = async () => {
   setCart([]);
+
   if (typeof globalThis.window !== "undefined") {
-   localStorage.removeItem(getCartKey(userId));
+   // Tüm sepet anahtarlarını temizle
+   const keysToRemove = ['cart'];
+
+   // Mevcut userId'li sepeti temizle
+   if (userId) {
+    keysToRemove.push(`cart_${userId}`);
+   }
+
+   // localStorage'daki tüm cart ile başlayan anahtarları bul ve temizle
+   try {
+    for (let i = 0; i < localStorage.length; i++) {
+     const key = localStorage.key(i);
+     if (key && key.startsWith('cart')) {
+      keysToRemove.push(key);
+     }
+    }
+   } catch (e) {
+    // localStorage erişim hatası
+   }
+
+   // Tüm sepet anahtarlarını temizle
+   keysToRemove.forEach(key => {
+    try {
+     localStorage.removeItem(key);
+    } catch (e) {
+     // Silme hatası - devam et
+    }
+   });
   }
+
+  // API'den de sepeti temizle
   try {
    await axiosInstance.put("/api/user/cart", { productIds: [] });
-  } catch (error_) { }
+  } catch (error_) {
+   // API hatası olsa bile localStorage temizlendi
+  }
+
+  // Cart updated event'i tetikle
+  if (typeof globalThis.window !== "undefined") {
+   globalThis.window.dispatchEvent(new Event('cartUpdated'));
+  }
  };
 
  const getCartTotal = () => {
@@ -491,6 +568,11 @@ export function CartProvider({ children }) {
     }
    }
   } catch (error_) {
+   // 401 hatası = kullanıcı authenticated değil, sadece localStorage'da tut
+   if (error_?.response?.status === 401) {
+    // Kullanıcı logout olmuş, favoriler sadece localStorage'da kalacak
+    return;
+   }
    setFavorites(previousFavorites);
    if (typeof globalThis.window !== "undefined") {
     localStorage.setItem(fKey, JSON.stringify(previousFavorites));
@@ -529,7 +611,12 @@ export function CartProvider({ children }) {
    } else if (typeof window !== "undefined") {
     window.dispatchEvent(new Event("favoritesUpdated"));
    }
-  } catch (_) {
+  } catch (error_) {
+   // 401 hatası = kullanıcı authenticated değil, sadece localStorage'da tut
+   if (error_?.response?.status === 401) {
+    // Kullanıcı logout olmuş, favoriler sadece localStorage'da kalacak
+    return;
+   }
    setFavorites(previousFavorites);
    if (typeof window !== "undefined") {
     localStorage.setItem(fKey, JSON.stringify(previousFavorites));

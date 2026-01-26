@@ -67,15 +67,25 @@ export async function GET() {
      // sessiz geç (best-effort)
     }
 
-    orders.push({
-     user: {
-      id: u._id,
-      name: u.name,
-      email: u.email,
-      phone: u.phone || "",
-     },
-     order: o,
-    });
+    // "Ödeme Bekleniyor" ve "Ödeme Başarısız" durumundaki siparişleri admin panelinde gösterme
+    // Bunlar henüz ödeme yapılmamış veya başarısız olan siparişlerdir
+    // Ayrıca "Beklemede" olsa bile ödeme bilgisi (paidAt) yoksa gösterme
+    const hasPaidAt = o.payment && (o.payment.paidAt || o.payment.transactionId);
+    const isValidOrder = o.status !== 'Ödeme Bekleniyor' &&
+     o.status !== 'Ödeme Başarısız' &&
+     (o.status !== 'Beklemede' || hasPaidAt);
+
+    if (isValidOrder) {
+     orders.push({
+      user: {
+       id: u._id,
+       name: u.name,
+       email: u.email,
+       phone: u.phone || "",
+      },
+      order: o,
+     });
+    }
    }
   }
 

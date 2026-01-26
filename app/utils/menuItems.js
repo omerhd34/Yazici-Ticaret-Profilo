@@ -32,7 +32,7 @@ export const MENU_ITEMS = [
  },
 
  {
-  name: "Sebil ve Su Arıtma", path: "/kategori/su-sebili-ve-su-aritma-cihazi", isSpecial: false,
+  name: "Sebil ve Arıtma", path: "/kategori/su-sebili-ve-su-aritma-cihazi", isSpecial: false,
   bannerImg: "/products/suSebiliSuAritma/suSebiliSuAritma.png",
   subCategories: [
    { name: "Su Sebili", path: "/kategori/su-sebili-ve-su-aritma-cihazi/su-sebili" },
@@ -47,4 +47,3 @@ export const MENU_ITEMS = [
  { name: "İndirimler", path: "/kategori/indirim", isSpecial: true },
  { name: "Kampanyalar", path: "/kategori/kampanyalar", isSpecial: true },
 ];
-

@@ -51,6 +51,15 @@ export async function GET() {
   // Siparişleri tarihe göre sırala (yeniden eskiye)
   let ordersList = user.orders || [];
 
+  // "Ödeme Bekleniyor" ve "Ödeme Başarısız" durumundaki siparişleri filtrele
+  // Ayrıca "Beklemede" olsa bile ödeme bilgisi (paidAt) yoksa gösterme
+  ordersList = ordersList.filter(o => {
+   const hasPaidAt = o.payment && (o.payment.paidAt || o.payment.transactionId);
+   return o.status !== 'Ödeme Bekleniyor' &&
+    o.status !== 'Ödeme Başarısız' &&
+    (o.status !== 'Beklemede' || hasPaidAt);
+  });
+
   if (ordersList.length > 0) {
    try {
     ordersList = ordersList.sort((a, b) => {
@@ -223,7 +232,9 @@ export async function POST(request) {
   }
 
   const orderId = `YZT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
-  const orderStatus = 'Beklemede';
+  // Sipariş başlangıçta "Ödeme Bekleniyor" durumunda oluşturuluyor
+  // Ödeme başarılı olduğunda 3ds-charge API'si durumu güncelleyecek
+  const orderStatus = 'Ödeme Bekleniyor';
 
   const order = {
    orderId,
@@ -243,107 +254,9 @@ export async function POST(request) {
   user.orders.unshift(order);
   await user.save();
 
-  // Ürünlerin soldCount ve stock değerlerini güncelle
-  try {
-   for (const item of repricedItems) {
-    const productId = item.productId;
-    const quantity = item.quantity || 1;
-
-    if (productId) {
-     // Önce ürünü getir
-     const product = await Product.findById(productId);
-     if (!product) continue;
-
-     // Ana ürünün stokunu azalt
-     const updateData = {
-      $inc: {
-       soldCount: quantity,
-       stock: -quantity
-      }
-     };
-
-     // Stok negatif olmaması için kontrol et
-     const newStock = (product.stock || 0) - quantity;
-     if (newStock < 0) {
-      // Stok yetersiz, ama sipariş zaten oluşturuldu
-     }
-
-     // Ana ürün stokunu güncelle
-     await Product.findByIdAndUpdate(
-      productId,
-      updateData,
-      { new: true }
-     );
-
-     // Eğer renk seçilmişse, o rengin stokunu da azalt
-     if (item.color && product.colors && Array.isArray(product.colors)) {
-      const colorName = String(item.color).trim();
-      // Renk bazlı stok güncellemesi - positional operator kullan
-      await Product.updateOne(
-       {
-        _id: productId,
-        'colors.name': colorName
-       },
-       {
-        $inc: { 'colors.$.stock': -quantity }
-       }
-      );
-     }
-    }
-   }
-  } catch (stockUpdateError) {
-   // Stok güncelleme hatası - sessizce handle et
-  }
-
-  let adminEmailResult = null;
-  try {
-   const adminEmail = process.env.EMAIL_USER;
-   const addrSummary = address.summary || '';
-   const pmType = paymentMethod?.type || order.payment?.type || '';
-   const pmText = 'Kart ile Ödeme (3D Secure)';
-
-   if (adminEmail) {
-    adminEmailResult = await sendAdminNewOrderEmail({
-     adminEmail,
-     orderId,
-     userName: user.name,
-     userEmail: user.email,
-     userPhone: user.phone,
-     total: order.total,
-     paymentMethod: pmText,
-     addressSummary: addrSummary,
-     items: repricedItems,
-    });
-
-   }
-  } catch (e) {
-   // Admin email error - silently fail
-  }
-
-  // Müşteriye e-posta bildirimi (e-posta bildirimleri açıksa)
-  let userEmailResult = null;
-  try {
-   const emailNotificationsEnabled = user.notificationPreferences?.emailNotifications !== false; // default true
-
-   if (emailNotificationsEnabled && user.email) {
-    const addrSummary = address.summary || '';
-    const pmText = 'Kart ile Ödeme (3D Secure)';
-
-    userEmailResult = await sendUserOrderConfirmationEmail({
-     userEmail: user.email,
-     userName: user.name,
-     orderId,
-     orderDate: order.date,
-     total: order.total,
-     paymentMethod: pmText,
-     addressSummary: addrSummary,
-     items: repricedItems,
-    });
-
-   }
-  } catch (e) {
-   // User email error - silently fail
-  }
+  // NOT: Stok azaltma ve e-posta gönderme işlemleri
+  // ödeme başarılı olduğunda (3ds-charge API'sinde) yapılacak
+  // Böylece kullanıcı ödeme yapmadan çıkarsa stoklar etkilenmeyecek
 
   return NextResponse.json({
    success: true,

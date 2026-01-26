@@ -130,10 +130,10 @@ export default function ProductRequestsTab() {
     </div>
     <button
      onClick={() => setShowRequestModal(true)}
-     className="px-6 py-3 bg-linear-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition shadow-lg flex items-center gap-2 cursor-pointer"
+     className="px-6 py-3 bg-linear-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition shadow-lg inline-flex items-center justify-center gap-2 cursor-pointer"
     >
-     <HiPlus size={20} />
-     Yeni İstek
+     <HiPlus size={20} className="shrink-0" />
+     <span className="leading-none">Yeni İstek</span>
     </button>
    </div>
 
@@ -146,10 +146,10 @@ export default function ProductRequestsTab() {
      <p className="text-sm text-gray-500 mb-4">Ürün isteğinde bulunmak için aşağıdaki butona tıklayın.</p>
      <button
       onClick={() => setShowRequestModal(true)}
-      className="px-6 py-3 bg-linear-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition shadow-lg flex items-center gap-2 mx-auto cursor-pointer"
+      className="px-6 py-3 bg-linear-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition shadow-lg inline-flex items-center justify-center gap-2 mx-auto cursor-pointer"
      >
-      <HiPlus size={20} />
-      Yeni Ürün İsteği
+      <HiPlus size={20} className="shrink-0" />
+      <span className="leading-none">Yeni Ürün İsteği</span>
      </button>
     </div>
    ) : (

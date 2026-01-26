@@ -61,7 +61,7 @@ export async function POST(request) {
 
   if (!iyzicoApiKey || !iyzicoSecretKey || iyzicoApiKey === 'your_api_key_here' || iyzicoSecretKey === 'your_secret_key_here') {
    return NextResponse.json(
-    { success: false, message: 'Ödeme sistemi yapılandırılmamış. Lütfen IYZICO_API_KEY ve IYZICO_SECRET_KEY değerlerini .env.local dosyasına ekleyin.' },
+    { success: false, message: 'iyzipay API key ve secret key ayarları yapılmadı' },
     { status: 500 }
    );
   }
@@ -94,9 +94,9 @@ export async function POST(request) {
   const buyerSurname = address.fullName?.split(' ').slice(1).join(' ') || user.name?.split(' ').slice(1).join(' ') || '';
 
   // Client IP adresini al
-  const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || 
-                   request.headers.get('x-real-ip') || 
-                   '127.0.0.1';
+  const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] ||
+   request.headers.get('x-real-ip') ||
+   '127.0.0.1';
 
   // iyzico Init 3DS request
   const iyzicoRequest = {
