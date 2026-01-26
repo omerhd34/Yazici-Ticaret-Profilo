@@ -10,12 +10,10 @@ export default function StoreCard({ title, adres, telefon, whatsappLink, email, 
  const [lightboxOpen, setLightboxOpen] = useState(false);
  const [lightboxIndex, setLightboxIndex] = useState(0);
 
- // Google Maps directions ve view URL'lerini oluştur
  const addressForMaps = encodeURIComponent(adres);
  const mapDirectionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${addressForMaps}`;
  const mapViewUrl = `https://www.google.com/maps/search/?api=1&query=${addressForMaps}`;
 
- // ESC tuşu ile lightbox'ı kapat
  useEffect(() => {
   const handleEscape = (e) => {
    if (e.key === 'Escape' && lightboxOpen) {

@@ -20,7 +20,7 @@ const SMALL_PRICE_RANGES = [
 ];
 
 export default function PriceFilter({ minPrice, maxPrice, onMinPriceChange, onMaxPriceChange, isMobile = false, slug = [] }) {
- const [isExpanded, setIsExpanded] = useState(true);
+ const [isExpanded, setIsExpanded] = useState(false);
  const [localMinPrice, setLocalMinPrice] = useState(minPrice || "");
  const [localMaxPrice, setLocalMaxPrice] = useState(maxPrice || "");
  const [selectedRange, setSelectedRange] = useState(null);
@@ -35,7 +35,7 @@ export default function PriceFilter({ minPrice, maxPrice, onMinPriceChange, onMa
   return slugLower.includes("elektrikli-supurge") || slugLower.includes("su-sebili") ||
    slugLower.includes("su-aritma") || slugLower.includes("kahve");
  }, [slug]);
-
+ 
  const priceRanges = isSmall ? SMALL_PRICE_RANGES : PRICE_RANGES;
 
  const computedSelectedRange = useMemo(() => {
@@ -91,15 +91,10 @@ export default function PriceFilter({ minPrice, maxPrice, onMinPriceChange, onMa
    onMaxPriceChange("");
    return;
   }
-
-  // Internal update flag'ini set et
   isInternalUpdate.current = true;
-
-  // Önce local state'leri güncelle (hemen görünür olsun)
   setSelectedRange(range.label);
   setLocalMinPrice(minValue);
   setLocalMaxPrice(maxValue);
-  // Sonra prop'ları güncelle (bu parent component'teki state'i güncelleyecek)
   onMinPriceChange(minValue);
   onMaxPriceChange(maxValue);
  };

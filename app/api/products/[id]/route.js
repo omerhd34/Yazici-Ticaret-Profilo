@@ -11,7 +11,6 @@ import { getProductUrl } from '@/app/utils/productUrl';
 export async function GET(request, { params }) {
  try {
   await dbConnect();
-  // Next.js App Router'da params async olabilir
   const resolvedParams = await params;
   const { id } = resolvedParams;
 

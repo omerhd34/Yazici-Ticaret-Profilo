@@ -5,18 +5,18 @@ import Product from '@/models/Product';
 
 // CORS header'larını ekleyen helper function
 function addCorsHeaders(response) {
-  const origin = process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr';
-  response.headers.set('Access-Control-Allow-Origin', origin);
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  response.headers.set('Access-Control-Allow-Credentials', 'true');
-  return response;
+ const origin = process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr';
+ response.headers.set('Access-Control-Allow-Origin', origin);
+ response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+ response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+ response.headers.set('Access-Control-Allow-Credentials', 'true');
+ return response;
 }
 
 // OPTIONS - Preflight request için
 export async function OPTIONS() {
-  const response = new NextResponse(null, { status: 200 });
-  return addCorsHeaders(response);
+ const response = new NextResponse(null, { status: 200 });
+ return addCorsHeaders(response);
 }
 
 // GET - Tüm ürünleri getir
@@ -30,7 +30,7 @@ export async function GET(request) {
   const isNew = searchParams.get('isNew');
   const isFeatured = searchParams.get('isFeatured');
   const search = searchParams.get('search') || searchParams.get('q');
-  const limit = parseInt(searchParams.get('limit') || '50');
+  const limit = parseInt(searchParams.get('limit') || '50000');
   const sort = searchParams.get('sort') || '-createdAt';
 
   let query = {};

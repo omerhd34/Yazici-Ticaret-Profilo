@@ -6,6 +6,7 @@ import CategoryFilter from "./CategoryFilter";
 import BagTypeFilter from "./BagTypeFilter";
 import ScreenSizeFilter from "./ScreenSizeFilter";
 import CoolingCapacityFilter from "./CoolingCapacityFilter";
+import SpecialProductsFilter from "./SpecialProductsFilter";
 
 export default function CategoryFiltersSidebar({
  slug,
@@ -22,11 +23,14 @@ export default function CategoryFiltersSidebar({
  onBagTypeToggle,
  onScreenSizeToggle,
  onCoolingCapacityToggle,
+ onSpecialFilterToggle,
 }) {
  const categorySlug = slug.length > 0 ? decodeURIComponent(slug[0]) : "";
  const isVacuumCategory = categorySlug === "elektrikli-supurge";
  const isTVCategory = categorySlug === "televizyon";
  const isAirConditionerCategory = categorySlug === "klima";
+ const isYenilerPage = categorySlug === "yeni" || categorySlug === "yeniler";
+ const isIndirimPage = categorySlug === "indirim";
 
  return (
   <aside className="hidden lg:block w-64 xl:w-72 shrink-0">
@@ -41,6 +45,11 @@ export default function CategoryFiltersSidebar({
      </button>
     </div>
 
+    <SpecialProductsFilter
+     selectedFilters={filters.specialFilters || []}
+     onFilterToggle={onSpecialFilterToggle}
+    />
+
     <SubCategoryFilter slug={slug} />
 
     {availableCategories && availableCategories.length > 0 && (
@@ -51,18 +60,18 @@ export default function CategoryFiltersSidebar({
      />
     )}
 
+    <BrandFilter
+     availableBrands={availableBrands}
+     selectedBrands={filters.brands}
+     onBrandToggle={onBrandToggle}
+    />
+
     <PriceFilter
      minPrice={filters.minPrice}
      maxPrice={filters.maxPrice}
      onMinPriceChange={onMinPriceChange}
      onMaxPriceChange={onMaxPriceChange}
      slug={slug}
-    />
-
-    <BrandFilter
-     availableBrands={availableBrands}
-     selectedBrands={filters.brands}
-     onBrandToggle={onBrandToggle}
     />
 
     {isVacuumCategory && (

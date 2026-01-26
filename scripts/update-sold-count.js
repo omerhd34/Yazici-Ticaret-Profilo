@@ -84,15 +84,12 @@ async function updateSoldCount() {
    }
   }
 
-  // Tüm ürünleri al
   const allProducts = await Product.find({});
 
-  // Her ürün için soldCount'u güncelle
   let updatedCount = 0;
   for (const product of allProducts) {
    let maxSoldCount = 0;
 
-   // Ürünün renk varyantlarını kontrol et
    if (product.colors && Array.isArray(product.colors) && product.colors.length > 0) {
     for (const color of product.colors) {
      if (color.serialNumber && salesBySerial.has(color.serialNumber)) {
@@ -105,7 +102,6 @@ async function updateSoldCount() {
     maxSoldCount = sales.count;
    }
 
-   // soldCount'u güncelle
    if (product.soldCount !== maxSoldCount) {
     product.soldCount = maxSoldCount;
     await product.save();
@@ -113,7 +109,6 @@ async function updateSoldCount() {
    }
   }
 
-  // İşlem tamamlandı!
 
   await mongoose.disconnect();
  } catch (error) {

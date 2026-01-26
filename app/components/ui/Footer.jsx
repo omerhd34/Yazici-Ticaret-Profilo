@@ -1,21 +1,13 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-
-import { FaFacebook, FaInstagram, FaCcVisa, FaCcMastercard } from "react-icons/fa";
+import { FaFacebook, FaInstagram } from "react-icons/fa";
 import { HiMail, HiLocationMarker, HiPhone } from "react-icons/hi";
+
 
 const SOCIAL_LINKS = [
  { icon: FaFacebook, href: "https://www.facebook.com/inegolyaziciticaret/?locale=tr_TR", label: "Facebook" },
  { icon: FaInstagram, href: "https://www.instagram.com/yaziciticaret/", label: "Instagram" },
-];
-
-const QUICK_LINKS = [
- { name: "Ana Sayfa", href: "/" },
- { name: "Yeniler", href: "/kategori/yeniler" },
- { name: "İndirimler", href: "/kategori/indirim" },
- { name: "Favorilerim", href: "/favoriler" },
- { name: "Sepetim", href: "/sepet" },
 ];
 
 const CUSTOMER_SERVICE_LINKS = [
@@ -31,6 +23,14 @@ const POLICY_LINKS = [
  { name: "Gizlilik Politikası", href: "/gizlilik-politikasi" },
  { name: "Kullanım Koşulları", href: "/kullanim-kosullari" },
  { name: "Çerez Politikası", href: "/cerez-politikasi" },
+];
+
+const CARDS = [
+ { name: "Troy", href: "/troy.png" },
+ { name: "Mastercard", href: "/mastercard.webp" },
+ { name: "Amex", href: "/amex.png" },
+ { name: "Visa", href: "/visa.png" },
+ { name: "Iyzico", href: "/iyzico.png" },
 ];
 
 const Footer = () => {
@@ -68,9 +68,9 @@ const Footer = () => {
      </div>
 
      <div>
-      <h4 className="text-white font-bold mb-4">Hızlı Linkler</h4>
+      <h4 className="text-white font-bold mb-4">Kurumsal</h4>
       <ul className="space-y-2">
-       {QUICK_LINKS.map((link) => (
+       {POLICY_LINKS.map((link) => (
         <li key={link.href}>
          <Link href={link.href} className="hover:text-indigo-400 transition text-sm">
           {link.name}
@@ -104,15 +104,15 @@ const Footer = () => {
        </li>
        <li className="flex items-start gap-3">
         <HiPhone size={18} className="mt-0.5 text-indigo-400 shrink-0" />
-        <Link href="tel:+905447967770" className="text-sm text-gray-300 hover:text-indigo-400 transition">
-         0544 796 77 70
-        </Link>
-       </li>
-       <li className="flex items-start gap-3">
-        <HiPhone size={18} className="mt-0.5 text-indigo-400 shrink-0" />
-        <Link href="tel:+905013496991" className="text-sm text-gray-300 hover:text-indigo-400 transition">
-         0501 349 69 91
-        </Link>
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+         <Link href="tel:+905447967770" className="text-gray-300 hover:text-indigo-400 transition">
+          0544 796 77 70
+         </Link>
+         <span className="text-gray-300">ve</span>
+         <Link href="tel:+905013496991" className="text-gray-300 hover:text-indigo-400 transition">
+          0501 349 69 91
+         </Link>
+        </div>
        </li>
        <li className="flex items-start gap-3">
         <HiLocationMarker size={18} className="mt-0.5 text-indigo-400 shrink-0" />
@@ -126,75 +126,43 @@ const Footer = () => {
    <div className="border-t border-gray-800">
     <div className="container mx-auto px-4 py-6">
      <div className="flex flex-col gap-4 sm:gap-6">
-      {/* Ödeme Logoları */}
       <div className="flex flex-col items-center gap-3 sm:gap-5 py-2 sm:py-4">
-       <p className="text-xs sm:text-sm text-gray-400 font-medium tracking-wide">Güvenli Ödeme</p>
        <div className="flex items-center justify-center gap-3 sm:gap-6 flex-wrap">
-        <div className="flex items-center justify-center bg-white rounded-lg p-2 sm:p-3 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 h-10 w-16 sm:h-12 sm:w-20">
-         <FaCcVisa
-          size={36}
-          className="text-blue-600 sm:w-12 sm:h-12"
-          title="Visa"
-         />
-        </div>
-        <div className="flex items-center justify-center bg-white rounded-lg p-2 sm:p-3 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 h-10 w-16 sm:h-12 sm:w-20">
-         <FaCcMastercard
-          size={36}
-          className="text-orange-500 sm:w-12 sm:h-12"
-          title="Mastercard"
-         />
-        </div>
-        <div className="flex items-center justify-center bg-white rounded-lg p-2 sm:p-3 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 h-10 w-16 sm:h-12 sm:w-20">
-         <Image
-          src="/troy.png"
-          alt="Troy"
-          width={36}
-          height={36}
-          className="object-contain w-full h-full"
-         />
-        </div>
-        <div className="flex items-center justify-center bg-white rounded-lg p-2 sm:p-3 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 h-10 w-16 sm:h-12 sm:w-20">
-         <Image
-          src="/iyzico.png"
-          alt="iyzico ile Öde"
-          width={60}
-          height={36}
-          className="object-contain w-full h-full"
-         />
-        </div>
+        {CARDS.map((card) => (
+         <div key={card.name} className="flex items-center justify-center rounded-lg p-2 sm:p-3 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 h-12 w-20 sm:h-16 sm:w-24">
+          <Image
+           src={card.href}
+           alt={card.name}
+           width={80}
+           height={48}
+           className="object-contain w-full h-full"
+          />
+         </div>
+        ))}
        </div>
       </div>
 
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-       <div className="flex flex-col gap-1 text-center md:text-left">
-        <p className="text-xs sm:text-sm text-gray-400">
-         © {currentYear} YAZICI TİCARET. Tüm hakları saklıdır.
-        </p>
-        <p className="text-[10px] sm:text-xs text-gray-500 inline-flex items-center justify-center md:justify-start gap-2">
-         Site tasarımı ve geliştirme:{" "}
-         <Link
-          href="https://www.omerhalisdemir.com.tr/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-indigo-400 font-semibold hover:text-indigo-300 transition inline-flex items-center gap-1.5"
-         >
-          <Image
-           src="/OHD-favicon.svg"
-           alt="OHD Logo"
-           width={20}
-           height={20}
-           className="object-contain sm:w-6 sm:h-6"
-          />
-         </Link>
-        </p>
-       </div>
-       <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 text-xs sm:text-sm text-center">
-        {POLICY_LINKS.map((link) => (
-         <Link key={link.href} href={link.href} className="hover:text-indigo-400 transition">
-          {link.name}
-         </Link>
-        ))}
-       </div>
+       <p className="text-xs sm:text-sm text-gray-400">
+        © {currentYear} YAZICI TİCARET. Tüm hakları saklıdır.
+       </p>
+       <p className="text-xs sm:text-sm text-gray-400 flex items-center gap-2">
+        Site tasarımı ve geliştirme:{" "}
+        <Link
+         href="https://www.omerhalisdemir.com.tr/"
+         target="_blank"
+         rel="noopener noreferrer"
+         className="text-indigo-400 font-semibold hover:text-indigo-300 transition inline-flex items-center gap-1.5"
+        >
+         <Image
+          src="/OHD-favicon.svg"
+          alt="OHD Logo"
+          width={21}
+          height={21}
+          className="object-contain"
+         />
+        </Link>
+       </p>
       </div>
      </div>
     </div>

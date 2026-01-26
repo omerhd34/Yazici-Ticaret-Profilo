@@ -8,6 +8,7 @@ import CategoryFilter from "./CategoryFilter";
 import BagTypeFilter from "./BagTypeFilter";
 import ScreenSizeFilter from "./ScreenSizeFilter";
 import CoolingCapacityFilter from "./CoolingCapacityFilter";
+import SpecialProductsFilter from "./SpecialProductsFilter";
 
 export default function CategoryFiltersModal({
  show,
@@ -26,6 +27,7 @@ export default function CategoryFiltersModal({
  onBagTypeToggle,
  onScreenSizeToggle,
  onCoolingCapacityToggle,
+ onSpecialFilterToggle,
 }) {
  useEffect(() => {
   if (show) {
@@ -59,6 +61,11 @@ export default function CategoryFiltersModal({
     </div>
 
     <div className="p-3 sm:p-4 space-y-4 sm:space-y-6">
+     <SpecialProductsFilter
+      selectedFilters={filters.specialFilters || []}
+      onFilterToggle={onSpecialFilterToggle}
+     />
+
      <SubCategoryFilter slug={slug} onLinkClick={onClose} />
 
      {availableCategories && availableCategories.length > 0 && (
@@ -69,6 +76,13 @@ export default function CategoryFiltersModal({
       />
      )}
 
+     <BrandFilter
+      availableBrands={availableBrands}
+      selectedBrands={filters.brands}
+      onBrandToggle={onBrandToggle}
+      isMobile={true}
+     />
+
      <PriceFilter
       minPrice={filters.minPrice}
       maxPrice={filters.maxPrice}
@@ -76,13 +90,6 @@ export default function CategoryFiltersModal({
       onMaxPriceChange={onMaxPriceChange}
       isMobile={true}
       slug={slug}
-     />
-
-     <BrandFilter
-      availableBrands={availableBrands}
-      selectedBrands={filters.brands}
-      onBrandToggle={onBrandToggle}
-      isMobile={true}
      />
 
      {isVacuumCategory && (

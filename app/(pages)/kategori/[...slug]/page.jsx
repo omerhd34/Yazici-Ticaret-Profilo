@@ -53,6 +53,7 @@ export default function KategoriPage() {
   bagTypes: [],
   screenSizes: [],
   coolingCapacities: [],
+  specialFilters: [],
   sortBy: "-createdAt",
  });
 
@@ -183,10 +184,6 @@ export default function KategoriPage() {
    }
 
    if (subCategory) url += `&subCategory=${encodeURIComponent(subCategory)}`;
-
-   if (filters.sortBy === "filter:featured") {
-    url += `&isFeatured=true`;
-   }
 
    if (filters.sortBy && !filters.sortBy.startsWith('filter:')) {
     url += `&sort=${filters.sortBy}`;
@@ -378,7 +375,6 @@ export default function KategoriPage() {
      });
     }
 
-    // Category filter (only for "yeniler" and "indirim" pages)
     if (categorySlug === "yeni" || categorySlug === "yeniler" || categorySlug === "indirim") {
      if (filters.categories.length > 0) {
       filteredProducts = filteredProducts.filter((p) =>
@@ -387,15 +383,26 @@ export default function KategoriPage() {
      }
     }
 
-    // SortBy filter: Yeni Ürünler, İndirimli Ürünler ve Öne Çıkan Ürünler filtreleri
-    if (filters.sortBy === "filter:new") {
-     filteredProducts = filteredProducts.filter(p => p.isNew === true);
-    } else if (filters.sortBy === "filter:discounted") {
-     filteredProducts = filteredProducts.filter(p =>
-      p.discountPrice && p.discountPrice > 0 && p.discountPrice < p.price
-     );
-    } else if (filters.sortBy === "filter:featured") {
-     filteredProducts = filteredProducts.filter(p => p.isFeatured === true);
+    if (filters.specialFilters && filters.specialFilters.length > 0) {
+     let specialFilteredProducts = filteredProducts.filter((p) => {
+      let isValid = true;
+
+      if (filters.specialFilters.includes("new")) {
+       isValid = isValid && p.isNew === true;
+      }
+
+      if (filters.specialFilters.includes("discounted")) {
+       isValid = isValid && (p.discountPrice && p.discountPrice > 0 && p.discountPrice < p.price);
+      }
+
+      if (filters.specialFilters.includes("featured")) {
+       isValid = isValid && p.isFeatured === true;
+      }
+
+      return isValid;
+     });
+
+     filteredProducts = specialFilteredProducts;
     }
 
     setProducts(filteredProducts);
@@ -404,7 +411,6 @@ export default function KategoriPage() {
     const brands = [...new Set(data.data.map((p) => p.brand).filter(Boolean))];
     setAvailableBrands(brands);
 
-    // Extract unique categories (only for "yeniler" and "indirim" pages)
     if (categorySlug === "yeni" || categorySlug === "yeniler" || categorySlug === "indirim") {
      const categories = [...new Set(data.data.map((p) => p.category).filter(Boolean))];
      categories.sort((a, b) => a.localeCompare(b, 'tr'));
@@ -413,7 +419,6 @@ export default function KategoriPage() {
      setAvailableCategories([]);
     }
 
-    // Extract unique screen sizes (only for televizyon category)
     if (categorySlug === "televizyon") {
      const screenSizes = new Set();
      data.data.forEach((p) => {
@@ -498,7 +503,7 @@ export default function KategoriPage() {
   } finally {
    setLoading(false);
   }
- }, [slug, filters.sortBy, filters.brands, filters.categories, filters.bagTypes, filters.screenSizes, filters.coolingCapacities, filters.minPrice, filters.maxPrice]);
+ }, [slug, filters.sortBy, filters.brands, filters.categories, filters.bagTypes, filters.screenSizes, filters.coolingCapacities, filters.minPrice, filters.maxPrice, filters.specialFilters]);
 
  // Ürün detay sayfası için fetch
  const fetchProductBySerialNumber = useCallback(async (serialNumber) => {
@@ -717,6 +722,15 @@ export default function KategoriPage() {
   }));
  };
 
+ const handleSpecialFilterToggle = (filterId) => {
+  setFilters((prev) => ({
+   ...prev,
+   specialFilters: prev.specialFilters.includes(filterId)
+    ? prev.specialFilters.filter((f) => f !== filterId)
+    : [...prev.specialFilters, filterId],
+  }));
+ };
+
  const clearFilters = () => {
   const hasActiveFilters =
    (slug.length > 1) ||
@@ -726,7 +740,8 @@ export default function KategoriPage() {
    (filters.categories && filters.categories.length > 0) ||
    (filters.bagTypes && filters.bagTypes.length > 0) ||
    (filters.screenSizes && filters.screenSizes.length > 0) ||
-   (filters.coolingCapacities && filters.coolingCapacities.length > 0);
+   (filters.coolingCapacities && filters.coolingCapacities.length > 0) ||
+   (filters.specialFilters && filters.specialFilters.length > 0);
 
   if (!hasActiveFilters) {
    return;
@@ -741,6 +756,7 @@ export default function KategoriPage() {
    bagTypes: [],
    screenSizes: [],
    coolingCapacities: [],
+   specialFilters: [],
   });
 
   if (slug.length > 1) {
@@ -1172,6 +1188,7 @@ export default function KategoriPage() {
       onBagTypeToggle={handleBagTypeToggle}
       onScreenSizeToggle={handleScreenSizeToggle}
       onCoolingCapacityToggle={handleCoolingCapacityToggle}
+      onSpecialFilterToggle={handleSpecialFilterToggle}
      />
 
      <div className="flex-1 min-w-0">
@@ -1209,6 +1226,7 @@ export default function KategoriPage() {
     onBagTypeToggle={handleBagTypeToggle}
     onScreenSizeToggle={handleScreenSizeToggle}
     onCoolingCapacityToggle={handleCoolingCapacityToggle}
+    onSpecialFilterToggle={handleSpecialFilterToggle}
    />
   </div>
  );

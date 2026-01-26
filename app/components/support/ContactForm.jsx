@@ -212,7 +212,7 @@ export default function ContactForm() {
    <button
     type="submit"
     disabled={loading}
-    className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg transition shadow-lg hover:shadow-xl"
+    className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg transition shadow-lg hover:shadow-xl cursor-pointer"
    >
     {loading ? "Gönderiliyor..." : "Mesaj Gönder"}
    </button>
