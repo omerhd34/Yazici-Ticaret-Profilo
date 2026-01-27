@@ -6,7 +6,7 @@ export const metadata = {
  title: {
   default: 'Yazıcı Ticaret',
  },
- description: 'Yazıcı Ticaret - Profilo ve LG markası beyaz eşya ve elektronik ürünlerinin satışını yapan güvenilir e-ticaret platformu. Buzdolabı, çamaşır makinesi, bulaşık makinesi, klima ve daha fazlası. Tüm Türkiye\'ye nakliye ve montaj hizmeti.',
+ description: 'Yazıcı Ticaret\'e hoş geldiniz! Profilo ve LG markası beyaz eşya ve elektronik ürünlerinde en uygun fiyatlar. Buzdolabı, çamaşır makinesi, bulaşık makinesi, klima ve daha fazlası. Tüm Türkiye\'ye nakliye ve montaj hizmeti.',
  icons: {
   icon: '/icon.svg',
   shortcut: '/icon.svg',
@@ -35,7 +35,7 @@ export const metadata = {
   url: process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr',
   siteName: 'Yazıcı Ticaret',
   title: 'Yazıcı Ticaret',
-  description: 'Profilo ve LG markası beyaz eşya ve elektronik ürünlerinin satışını yapan güvenilir e-ticaret platformu. Tüm Türkiye\'ye nakliye ve montaj hizmeti.',
+  description: 'Profilo ve LG markası beyaz eşya ve elektronik ürünlerinde en uygun fiyatlar. Tüm Türkiye\'ye nakliye ve montaj hizmeti.',
  },
  robots: {
   index: true,
