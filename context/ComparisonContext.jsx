@@ -3,7 +3,14 @@ import { createContext, useContext, useState, useEffect } from "react";
 
 const ComparisonContext = createContext();
 
-const MAX_COMPARISON_ITEMS = 4;
+// Ekran boyutuna göre maksimum ürün sayısını hesapla
+const getMaxComparisonItems = () => {
+ if (typeof window === "undefined") return 4;
+ const width = window.innerWidth;
+ if (width < 768) return 2;
+ if (width < 1024) return 3;
+ return 4;
+};
 
 export function ComparisonProvider({ children }) {
  const [comparisonItems, setComparisonItems] = useState(() => {
@@ -15,6 +22,35 @@ export function ComparisonProvider({ children }) {
    return [];
   }
  });
+
+ const [maxItems, setMaxItems] = useState(() => {
+  if (typeof window === "undefined") return 4;
+  return getMaxComparisonItems();
+ });
+
+ useEffect(() => {
+  if (typeof window === "undefined") return;
+
+  const updateMaxItems = () => {
+   const newMaxItems = getMaxComparisonItems();
+   setMaxItems(newMaxItems);
+
+   setComparisonItems((prev) => {
+    if (prev.length > newMaxItems) {
+     const trimmed = prev.slice(0, newMaxItems);
+     return trimmed;
+    }
+    return prev;
+   });
+  };
+
+  // İlk yüklemede kontrol et
+  updateMaxItems();
+
+  // Resize olayını dinle
+  window.addEventListener("resize", updateMaxItems);
+  return () => window.removeEventListener("resize", updateMaxItems);
+ }, []);
 
  useEffect(() => {
   if (typeof window === "undefined") return;
@@ -97,10 +133,11 @@ export function ComparisonProvider({ children }) {
   }
 
   // Maksimum ürün sayısını kontrol et
-  if (comparisonItems.length >= MAX_COMPARISON_ITEMS) {
+  const currentMaxItems = typeof window !== "undefined" ? getMaxComparisonItems() : maxItems;
+  if (comparisonItems.length >= currentMaxItems) {
    return {
     success: false,
-    message: `En fazla ${MAX_COMPARISON_ITEMS} ürün karşılaştırabilirsiniz.`
+    message: `En fazla ${currentMaxItems} ürün karşılaştırabilirsiniz.`
    };
   }
 
@@ -134,7 +171,8 @@ export function ComparisonProvider({ children }) {
  };
 
  const canAddMore = () => {
-  return comparisonItems.length < MAX_COMPARISON_ITEMS;
+  const currentMaxItems = typeof window !== "undefined" ? getMaxComparisonItems() : maxItems;
+  return comparisonItems.length < currentMaxItems;
  };
 
  const value = {
@@ -145,7 +183,7 @@ export function ComparisonProvider({ children }) {
   isInComparison,
   getComparisonCount,
   canAddMore,
-  maxItems: MAX_COMPARISON_ITEMS,
+  maxItems,
  };
 
  return (

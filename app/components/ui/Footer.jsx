@@ -106,11 +106,11 @@ const Footer = () => {
         <HiPhone size={18} className="mt-0.5 text-indigo-400 shrink-0" />
         <div className="flex flex-wrap items-center gap-2 text-sm">
          <Link href="tel:+905447967770" className="text-gray-300 hover:text-indigo-400 transition">
-          0544 796 77 70
+          0544 796 7770
          </Link>
          <span className="text-gray-300">ve</span>
          <Link href="tel:+905013496991" className="text-gray-300 hover:text-indigo-400 transition">
-          0501 349 69 91
+          0501 349 6991
          </Link>
         </div>
        </li>
