@@ -3,6 +3,9 @@ import Product from '@/models/Product';
 import { MENU_ITEMS } from '@/app/utils/menuItems';
 import { getProductUrl } from '@/app/utils/productUrl';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
+
 export default async function sitemap() {
  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr';
 
@@ -134,4 +137,3 @@ export default async function sitemap() {
 
  return [...staticPages, ...categoryPages, ...productPages];
 }
-
