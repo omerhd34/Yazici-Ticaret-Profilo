@@ -24,7 +24,7 @@ export default function ImportantNotes() {
      </li>
      <li className="flex items-start gap-2">
       <MdCheckCircle className="text-yellow-600 shrink-0 mt-0.5" size={18} />
-      <span>Kampanya ve indirimli ürünlerde iade/değişim koşulları farklılık gösterebilir.</span>
+      <span>İndirimli ürünlerde iade/değişim koşulları farklılık gösterebilir.</span>
      </li>
     </ul>
    </div>

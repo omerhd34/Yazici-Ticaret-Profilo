@@ -238,10 +238,10 @@ export async function PUT(request, { params }) {
     }).select('name email phone notificationPreferences');
 
     // Her kullanıcıya bildirim gönder (tercihlerine göre)
-    // Fiyat düşüşü bildirimi: hem campaignNotifications hem emailNotifications açık olmalı
+    // Fiyat düşüşü bildirimi: emailNotifications açık olmalı
     for (const user of usersWithFavorite) {
-     // E-posta bildirimi (hem kampanya hem e-posta tercihi açıksa)
-     if (user.notificationPreferences?.campaignNotifications && user.notificationPreferences?.emailNotifications && user.email) {
+     // E-posta bildirimi (e-posta tercihi açıksa)
+     if (user.notificationPreferences?.emailNotifications && user.email) {
       try {
        const relativeUrl = getProductUrl(product);
        const productUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr'}${relativeUrl}`;
@@ -270,10 +270,10 @@ export async function PUT(request, { params }) {
     }).select('name email phone notificationPreferences');
 
     // Her kullanıcıya bildirim gönder (tercihlerine göre)
-    // Fiyat düşüşü bildirimi: hem campaignNotifications hem emailNotifications açık olmalı
+    // Fiyat düşüşü bildirimi: emailNotifications açık olmalı
     for (const user of usersWithCart) {
-     // E-posta bildirimi (hem kampanya hem e-posta tercihi açıksa)
-     if (user.notificationPreferences?.campaignNotifications && user.notificationPreferences?.emailNotifications && user.email) {
+     // E-posta bildirimi (e-posta tercihi açıksa)
+     if (user.notificationPreferences?.emailNotifications && user.email) {
       try {
        const relativeUrl = getProductUrl(product);
        const productUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr'}${relativeUrl}`;
@@ -308,9 +308,9 @@ export async function PUT(request, { params }) {
     }).select('name email phone notificationPreferences');
 
     // Her kullanıcıya bildirim gönder (tercihlerine göre)
-    // Stok artışı bildirimi: hem campaignNotifications hem emailNotifications açık olmalı
+    // Stok artışı bildirimi: emailNotifications açık olmalı
     for (const user of usersWithFavorite) {
-     if (user.notificationPreferences?.campaignNotifications && user.notificationPreferences?.emailNotifications && user.email) {
+     if (user.notificationPreferences?.emailNotifications && user.email) {
       try {
        const relativeUrl = getProductUrl(product);
        const productUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr'}${relativeUrl}`;
@@ -336,10 +336,10 @@ export async function PUT(request, { params }) {
     }).select('name email phone notificationPreferences');
 
     // Her kullanıcıya bildirim gönder (tercihlerine göre)
-    // Stok artışı bildirimi: hem campaignNotifications hem emailNotifications açık olmalı
+    // Stok artışı bildirimi: emailNotifications açık olmalı
     for (const user of usersWithCart) {
-     // E-posta bildirimi (hem kampanya hem e-posta tercihi açıksa)
-     if (user.notificationPreferences?.campaignNotifications && user.notificationPreferences?.emailNotifications && user.email) {
+     // E-posta bildirimi (e-posta tercihi açıksa)
+     if (user.notificationPreferences?.emailNotifications && user.email) {
       try {
        const relativeUrl = getProductUrl(product);
        const productUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://yazici.gen.tr'}${relativeUrl}`;

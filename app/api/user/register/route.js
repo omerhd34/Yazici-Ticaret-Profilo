@@ -120,7 +120,6 @@ export async function POST(request) {
    isEmailVerified: false,
    notificationPreferences: {
     emailNotifications: true,
-    campaignNotifications: true,
    },
   });
 

@@ -173,15 +173,11 @@ export async function POST(request) {
    const p = productById.get(String(it.productId));
    if (!p) return { ...it, _missingProduct: true };
 
-   // İstemciden gelen fiyatı kullan (kampanya fiyatı dahil)
+   // İstemciden gelen fiyatı kullan
    // Eğer istemciden fiyat gelmemişse, ürünün normal fiyatını kullan
    let price = it.price;
    if (!price || price === 0) {
-    // Kampanya fiyatı varsa onu kullan, yoksa indirimli veya normal fiyatı kullan
-    price = it.campaignPrice;
-    if (!price) {
-     price = p.discountPrice && p.discountPrice < p.price ? p.discountPrice : p.price;
-    }
+    price = p.discountPrice && p.discountPrice < p.price ? p.discountPrice : p.price;
    }
 
    return {
@@ -191,8 +187,6 @@ export async function POST(request) {
     image: it.image || p?.images?.[0] || "",
     price: Number(price || 0),
     serialNumber: p.serialNumber || "",
-    campaignId: it.campaignId || null,
-    campaignTitle: it.campaignTitle || null,
    };
   });
   const missing = repricedItems.find((it) => it._missingProduct);

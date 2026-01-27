@@ -1,8 +1,6 @@
 "use client";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
-import { HiArrowRight, HiCalendar } from "react-icons/hi";
 import axiosInstance from "@/lib/axios";
 
 // Force dynamic rendering - tamamen client-side
@@ -77,10 +75,6 @@ export default function KategoriPage() {
  const [checkingRating, setCheckingRating] = useState(true);
  const [ratingMessage, setRatingMessage] = useState("");
  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
-
- // Kampanyalar için state'ler
- const [campaignsData, setCampaignsData] = useState([]);
- const [campaignsLoading, setCampaignsLoading] = useState(true);
 
  const { addToCart, addToFavorites, removeFromFavorites, isFavorite } = useCart();
  const { addToComparison, removeFromComparison, isInComparison } = useComparison();
@@ -768,7 +762,6 @@ export default function KategoriPage() {
  const categoryNames = {
   yeni: "Yeniler",
   indirim: "İndirimler",
-  kampanyalar: "Kampanyalar",
  };
 
  const getCategoryName = () => {
@@ -899,35 +892,6 @@ export default function KategoriPage() {
  const expandedProductsCount = useMemo(() => {
   return products.length;
  }, [products]);
-
- // Kampanyalar sayfası kontrolü
- const isCampaignsPage = useMemo(() => {
-  return slug.length > 0 && decodeURIComponent(slug[0]) === "kampanyalar";
- }, [slug]);
-
- // Kampanyaları yükle
- useEffect(() => {
-  if (isCampaignsPage) {
-   const fetchCampaigns = async () => {
-    try {
-     const res = await axiosInstance.get("/api/campaigns");
-     const data = res.data;
-     if (data && data.success) {
-      setCampaignsData(data.data || []);
-     } else {
-      setCampaignsData([]);
-     }
-    } catch (error) {
-     setCampaignsData([]);
-    } finally {
-     setCampaignsLoading(false);
-    }
-   };
-   fetchCampaigns();
-  } else {
-   setCampaignsLoading(false);
-  }
- }, [isCampaignsPage]);
 
  if (isProductDetailPage) {
   if (loading) {
@@ -1070,96 +1034,6 @@ export default function KategoriPage() {
 
      {/* Benzer Ürünler Bölümü */}
      <ProductSimilarProducts product={product} />
-    </div>
-   </div>
-  );
- }
-
- if (isCampaignsPage) {
-
-  return (
-   <div className="min-h-screen bg-gray-50">
-    {/* Header */}
-    <div className="bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 text-white py-8 sm:py-10 md:py-14">
-     <div className="container mx-auto px-4 sm:px-6 md:px-8">
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-black mb-3 text-center">Kampanyalar</h1>
-      <p className="text-lg sm:text-xl text-center text-indigo-100 max-w-2xl mx-auto">
-       Özel fırsatlar ve kampanyalarımızı kaçırmayın!
-      </p>
-     </div>
-    </div>
-
-    {/* Kampanyalar Grid */}
-    <div className="container mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12">
-     {campaignsLoading ? (
-      <div className="text-center py-12">
-       <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-       <p className="text-gray-600">Kampanyalar yükleniyor...</p>
-      </div>
-     ) : campaignsData.length === 0 ? (
-      <div className="text-center py-12">
-       <p className="text-gray-600 text-lg">Henüz kampanya bulunmamaktadır.</p>
-      </div>
-     ) : (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 max-w-7xl mx-auto">
-       {campaignsData.map((campaign) => (
-        <div
-         key={campaign._id}
-         className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 flex flex-col"
-        >
-         {/* Görsel Container */}
-         <div className="relative aspect-4/3 overflow-hidden bg-gray-100">
-          <Image
-           src={campaign.image}
-           alt={campaign.title}
-           fill
-           className="object-cover transition-transform duration-500 group-hover:scale-110"
-           sizes="(max-width: 768px) 100vw, 50vw"
-           priority={campaignsData.indexOf(campaign) === 0}
-          />
-          {/* Overlay Gradient */}
-          <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-         </div>
-
-         {/* İçerik */}
-         <div className="p-6 sm:p-8 flex flex-col grow">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors duration-300">
-           {campaign.title}
-          </h2>
-          {campaign.description && (
-           <p className="text-gray-600 text-sm sm:text-base mb-4 line-clamp-2">
-            {campaign.description}
-           </p>
-          )}
-          <div className="mt-auto flex items-center justify-between gap-4 flex-wrap">
-           <button
-            className="inline-flex items-center px-6 py-3 bg-linear-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg cursor-pointer"
-            onClick={() => router.push(`/kategori/kampanyalar/${campaign._id}`)}
-           >
-            İncele
-            <HiArrowRight className="ml-2 w-5 h-5" />
-           </button>
-           {campaign.endDate && (
-            <div className="flex items-center text-gray-600">
-             <HiCalendar className="w-5 h-5 mr-2 text-indigo-600" />
-             <span className="text-sm font-semibold">
-              Son Gün:{" "}
-              <span className="text-gray-900">
-               {new Date(campaign.endDate).toLocaleDateString("tr-TR", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-               })}
-              </span>
-             </span>
-            </div>
-           )}
-          </div>
-         </div>
-        </div>
-       ))}
-      </div>
-     )}
     </div>
    </div>
   );

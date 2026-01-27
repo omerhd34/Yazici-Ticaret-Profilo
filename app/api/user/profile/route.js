@@ -85,7 +85,6 @@ export async function GET() {
     profileImage: user.profileImage || '',
     notificationPreferences: {
      emailNotifications: user.notificationPreferences?.emailNotifications !== undefined ? user.notificationPreferences.emailNotifications : true,
-     campaignNotifications: user.notificationPreferences?.campaignNotifications !== undefined ? user.notificationPreferences.campaignNotifications : false,
     },
    },
   });
@@ -203,9 +202,6 @@ export async function PUT(request) {
    if (body.notificationPreferences.emailNotifications !== undefined) {
     user.notificationPreferences.emailNotifications = body.notificationPreferences.emailNotifications;
    }
-   if (body.notificationPreferences.campaignNotifications !== undefined) {
-    user.notificationPreferences.campaignNotifications = body.notificationPreferences.campaignNotifications;
-   }
   }
 
   await user.save();
@@ -240,7 +236,6 @@ export async function PUT(request) {
     profileImage: user.profileImage || '',
     notificationPreferences: {
      emailNotifications: user.notificationPreferences?.emailNotifications !== undefined ? user.notificationPreferences.emailNotifications : true,
-     campaignNotifications: user.notificationPreferences?.campaignNotifications !== undefined ? user.notificationPreferences.campaignNotifications : false,
     },
    },
   });

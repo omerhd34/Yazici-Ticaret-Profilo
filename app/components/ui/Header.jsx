@@ -267,7 +267,7 @@ const Header = () => {
        <div className="relative">
         <FaShoppingCart size={22} className="group-hover:text-indigo-600 transition" />
         {isClient && getCartItemCount() > 0 && (
-         <span className={`absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white shadow-sm ${getCartItemCount() >= 9 ? "px-1.5 min-w-[20px] h-5" : "w-4 h-4"}`}>
+         <span className={`absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white shadow-sm leading-none ${getCartItemCount() >= 9 ? "px-1.5 min-w-[20px] h-5" : "w-4 h-4"}`}>
           {getCartItemCount() >= 9 ? "9+" : getCartItemCount()}
          </span>
         )}
@@ -278,7 +278,7 @@ const Header = () => {
        <div className="relative">
         <HiHeart size={22} className="group-hover:text-indigo-600 transition" />
         {isClient && getFavoriteCount() > 0 && (
-         <span className={`absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white shadow-sm ${getFavoriteCount() >= 9 ? "px-1.5 min-w-[20px] h-5" : "w-4 h-4"}`}>
+         <span className={`absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white shadow-sm leading-none ${getFavoriteCount() >= 9 ? "px-1.5 min-w-[20px] h-5" : "w-4 h-4"}`}>
           {getFavoriteCount() >= 9 ? "9+" : getFavoriteCount()}
          </span>
         )}
@@ -516,16 +516,6 @@ const Header = () => {
              borderColor: "border-green-100",
              iconBg: "bg-green-100"
             };
-           } else if (item.name === "Kampanyalar") {
-            return {
-             textColor: "text-blue-600",
-             bgFrom: "from-blue-50",
-             bgTo: "to-blue-50/50",
-             hoverFrom: "hover:from-blue-100",
-             hoverTo: "hover:to-blue-100/50",
-             borderColor: "border-blue-100",
-             iconBg: "bg-blue-100"
-            };
            }
            return {
             textColor: "text-red-600",
@@ -548,7 +538,6 @@ const Header = () => {
             <div className={`w-10 h-10 ${styles.iconBg} rounded-lg flex items-center justify-center shrink-0`}>
              {item.name === "Yeniler" && <HiGift size={20} className="text-red-600" />}
              {item.name === "İndirimler" && <HiTag size={20} className="text-green-600" />}
-             {item.name === "Kampanyalar" && <HiGift size={20} className="text-blue-600" />}
             </div>
             <span className="text-base">{item.name}</span>
            </Link>

@@ -272,10 +272,6 @@ export function CartProvider({ children }) {
        selectedColor: cartItem.selectedColor,
        quantity: cartItem.quantity,
        addedAt: cartItem.addedAt,
-       // Kampanya fiyatını ve bilgilerini koru
-       campaignPrice: cartItem.campaignPrice,
-       campaignId: cartItem.campaignId,
-       campaignTitle: cartItem.campaignTitle,
       };
      }
      return cartItem;
@@ -284,11 +280,6 @@ export function CartProvider({ children }) {
     const hasChanges = prevCart.some((oldItem, index) => {
      const newItem = updatedCart[index];
      if (!newItem) return true;
-
-     // Kampanya fiyatı olan ürünlerin fiyatlarını güncelleme
-     if (oldItem.campaignPrice) {
-      return oldItem.stock !== newItem.stock;
-     }
 
      const oldPrice = oldItem.discountPrice && oldItem.discountPrice < oldItem.price
       ? oldItem.discountPrice
@@ -519,11 +510,7 @@ export function CartProvider({ children }) {
 
  const getCartTotal = () => {
   return cart.reduce((total, item) => {
-   // Kampanya fiyatı varsa onu kullan
-   let price = item.campaignPrice;
-   if (!price) {
-    price = (item.discountPrice && item.discountPrice < item.price) ? item.discountPrice : item.price;
-   }
+   const price = (item.discountPrice && item.discountPrice < item.price) ? item.discountPrice : item.price;
    return total + price * item.quantity;
   }, 0);
  };

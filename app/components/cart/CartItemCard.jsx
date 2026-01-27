@@ -6,12 +6,10 @@ import { MdDelete } from "react-icons/md";
 import { getProductUrl } from "@/app/utils/productUrl";
 
 export default function CartItemCard({ item, onUpdateQuantity, onRemove }) {
- const hasCampaignPrice = item.campaignPrice !== undefined && item.campaignPrice !== null;
- const hasDiscount = !hasCampaignPrice && item.discountPrice && item.discountPrice < item.price;
- const itemPrice = hasCampaignPrice ? item.campaignPrice : (hasDiscount ? item.discountPrice : item.price);
+ const hasDiscount = item.discountPrice && item.discountPrice < item.price;
+ const itemPrice = hasDiscount ? item.discountPrice : item.price;
  const itemTotal = itemPrice * item.quantity;
- // Orijinal fiyat: Kampanya fiyatı varsa ürünün normal fiyatı, yoksa indirimli fiyat varsa normal fiyat, yoksa normal fiyat
- const originalPrice = hasCampaignPrice ? item.price : (hasDiscount ? item.price : item.price);
+ const originalPrice = item.price;
  const allColors = item._allColors || item.colors;
  const selectedColorObj = item.selectedColor && allColors && Array.isArray(allColors)
   ? allColors.find(c => typeof c === 'object' && c.name === item.selectedColor)
@@ -103,15 +101,10 @@ export default function CartItemCard({ item, onUpdateQuantity, onRemove }) {
    </div>
 
    <div className="text-right">
-    {hasCampaignPrice && (
-     <p className="text-xs text-purple-600 font-semibold mb-1">
-      {item.campaignTitle || 'Kampanya'} Fiyatı
-     </p>
-    )}
     <p className="text-lg font-bold text-indigo-600">
      {itemTotal.toFixed(2)} ₺
     </p>
-    {(hasDiscount || hasCampaignPrice) && (
+    {hasDiscount && (
      <p className="text-sm text-gray-400 line-through">
       {(originalPrice * item.quantity).toFixed(2)} ₺
      </p>

@@ -12,7 +12,6 @@ export default function OrderSummary({
  onPay,
  paymentMethodType,
  isSubmitting = false,
- campaignInfo,
 }) {
  return (
   <div className="bg-white rounded-xl shadow-sm p-6 sticky top-24">
@@ -23,25 +22,6 @@ export default function OrderSummary({
      <span className="text-gray-600">Ürünler Toplamı</span>
      <span className="font-semibold">{cartTotal.toFixed(2)} ₺</span>
     </div>
-    {campaignInfo && campaignInfo.length > 0 && (
-     <>
-      {campaignInfo.map((campaign, index) => {
-       const discount = campaign.originalTotal - campaign.campaignTotal;
-       return (
-        <div key={campaign.campaignId || index} className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-         <div className="flex justify-between items-start mb-1">
-          <span className="text-xs font-semibold text-purple-800">
-           {campaign.campaignTitle} Kampanyası
-          </span>
-         </div>
-         <p className="text-xs text-purple-700">
-          Kampanyadan dolayı fiyat {discount.toFixed(2)} ₺ indirildi.
-         </p>
-        </div>
-       );
-      })}
-     </>
-    )}
     <div className="flex justify-between text-sm">
      <span className="text-gray-600">Kargo</span>
      <span className="font-semibold">

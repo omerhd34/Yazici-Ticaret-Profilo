@@ -17,206 +17,23 @@ export default function OdemePage() {
  const router = useRouter();
  const { cart, clearCart } = useCart();
  const [mounted, setMounted] = useState(false);
- const [cartWithCampaigns, setCartWithCampaigns] = useState(cart || []);
 
  useEffect(() => {
   setMounted(true);
  }, []);
 
- // Sepet değiştiğinde cartWithCampaigns'i güncelle
- useEffect(() => {
-  if (cart && cart.length > 0) {
-   setCartWithCampaigns(cart);
-  } else {
-   setCartWithCampaigns([]);
-  }
- }, [cart]);
-
- // Sepetteki ürünlere kampanya kontrolü yap ve kampanya fiyatlarını uygula
- useEffect(() => {
-  const checkCampaigns = async () => {
-   if (!cart || cart.length === 0) {
-    setCartWithCampaigns([]);
-    return;
-   }
-
-   try {
-    // Ürünleri ve kampanyaları paralel olarak yükle
-    const [productsRes, campaignsRes] = await Promise.all([
-     axiosInstance.get("/api/products?limit=1000"),
-     axiosInstance.get("/api/campaigns")
-    ]);
-
-    const productsData = productsRes.data;
-    const campaignsData = campaignsRes.data;
-
-    const allProducts = productsData.data || productsData.products || [];
-    const campaigns = campaignsData.success ? campaignsData.data || [] : [];
-
-    if (productsData.success && allProducts.length > 0) {
-     // Önce sepetteki tüm ürünlerin serialNumber'larını hesapla
-     const cartWithSerialNumbers = cart.map(cartItem => {
-      const productId = String(cartItem._id || cartItem.id);
-      const currentProduct = allProducts.find(p => String(p._id) === productId);
-      if (!currentProduct) return null;
-
-      const allColors = currentProduct._allColors || currentProduct.colors;
-      const selectedColorObj = cartItem.selectedColor && allColors && Array.isArray(allColors)
-       ? allColors.find(c => typeof c === 'object' && c.name === cartItem.selectedColor)
-       : null;
-
-      const colorSerialNumber = selectedColorObj?.serialNumber || currentProduct.serialNumber;
-
-      return {
-       ...cartItem,
-       product: currentProduct,
-       serialNumber: colorSerialNumber,
-      };
-     }).filter(Boolean);
-
-     // Her kampanya için kampanyadaki tüm ürünlerin sepette olup olmadığını kontrol et
-     const campaignProductCounts = {};
-     campaigns.forEach(campaign => {
-      if (campaign.isActive && campaign.productCodes && Array.isArray(campaign.productCodes) && campaign.campaignPrice) {
-       // Kampanyadaki toplam ürün sayısı (kampanya kodlarının sayısı)
-       const campaignTotalProductCount = campaign.productCodes.length;
-
-       // Sepetteki bu kampanyaya ait ürünlerin serialNumber'larını topla (seçili renge göre)
-       const cartSerialNumbers = new Set();
-       cartWithSerialNumbers.forEach(item => {
-        // Seçili renge göre hesaplanmış serialNumber'ı kullan
-        const itemSerialNumber = item.serialNumber;
-        if (campaign.productCodes.includes(itemSerialNumber)) {
-         cartSerialNumbers.add(itemSerialNumber);
-        }
-       });
-
-       // Kampanyadaki TÜM ürün kodlarının sepette olup olmadığını kontrol et
-       const allCampaignProductsInCart = campaign.productCodes.every(code =>
-        cartSerialNumbers.has(code)
-       );
-
-       // Sadece kampanyadaki TÜM ürünler sepetteyse kampanya fiyatını uygula
-       if (allCampaignProductsInCart && campaignTotalProductCount > 0) {
-        const campaignIdStr = String(campaign._id);
-        // Kampanya fiyatını kampanyadaki toplam ürün sayısına böl (kampanya sayfasındaki mantıkla aynı)
-        campaignProductCounts[campaignIdStr] = {
-         cartCount: campaignTotalProductCount,
-         pricePerProduct: campaign.campaignPrice / campaignTotalProductCount,
-         campaign,
-        };
-       }
-      }
-     });
-
-     // Kampanyaları kontrol et ve sepetteki ürünlere uygula
-     const updatedCart = cart.map(cartItem => {
-      const productId = String(cartItem._id || cartItem.id);
-      const currentProduct = allProducts.find(p => String(p._id) === productId);
-
-      if (currentProduct) {
-       const allColors = currentProduct._allColors || currentProduct.colors;
-       const selectedColorObj = cartItem.selectedColor && allColors && Array.isArray(allColors)
-        ? allColors.find(c => typeof c === 'object' && c.name === cartItem.selectedColor)
-        : null;
-
-       const colorSerialNumber = selectedColorObj?.serialNumber || currentProduct.serialNumber;
-
-       // Kampanya bilgilerini kontrol et ve güncelle
-       let campaignPrice = cartItem.campaignPrice;
-       let campaignId = cartItem.campaignId;
-       let campaignTitle = cartItem.campaignTitle;
-       let campaignTotalPrice = cartItem.campaignTotalPrice;
-
-       // Eğer kampanya bilgisi yoksa, aktif kampanyalarda bu ürünü ara
-       if (!campaignPrice || !campaignId) {
-        // Önceden hesaplanmış kampanya bilgilerini kullan (sadece kampanyadaki TÜM ürünler sepetteyse)
-        for (const [campId, campaignInfo] of Object.entries(campaignProductCounts)) {
-         const isInCampaign = campaignInfo.campaign.productCodes.includes(colorSerialNumber) ||
-          campaignInfo.campaign.productCodes.includes(currentProduct.serialNumber);
-
-         if (isInCampaign) {
-          campaignPrice = campaignInfo.pricePerProduct;
-          campaignId = campaignInfo.campaign._id;
-          campaignTitle = campaignInfo.campaign.title;
-          campaignTotalPrice = campaignInfo.campaign.campaignPrice;
-          break; // İlk eşleşen kampanyayı kullan
-         }
-        }
-       }
-
-       return {
-        ...cartItem,
-        ...currentProduct,
-        selectedSize: cartItem.selectedSize,
-        selectedColor: cartItem.selectedColor,
-        serialNumber: colorSerialNumber,
-        quantity: cartItem.quantity,
-        addedAt: cartItem.addedAt,
-        // Kampanya bilgilerini güncelle
-        campaignPrice: campaignPrice,
-        campaignId: campaignId,
-        campaignTitle: campaignTitle,
-        campaignTotalPrice: campaignTotalPrice,
-       };
-      }
-      return cartItem;
-     });
-
-     setCartWithCampaigns(updatedCart);
-    } else {
-     setCartWithCampaigns(cart);
-    }
-   } catch (error) {
-    console.error("Kampanya kontrolü yapılırken hata:", error);
-    setCartWithCampaigns(cart);
-   }
-  };
-
-  checkCampaigns();
- }, [cart]);
-
  const cartTotal = useMemo(() => {
-  return (cartWithCampaigns || cart || []).reduce((sum, item) => {
-   let price = item.campaignPrice;
-   if (!price) {
-    price = item.discountPrice && item.discountPrice < item.price
-     ? item.discountPrice
-     : item.price;
-   }
+  return (cart || []).reduce((sum, item) => {
+   const price = item.discountPrice && item.discountPrice < item.price
+    ? item.discountPrice
+    : item.price;
    return sum + (price || 0) * (item.quantity || 1);
   }, 0);
- }, [cartWithCampaigns, cart]);
+ }, [cart]);
 
  const shippingCost = cartTotal >= 500 ? 0 : 29.99;
  const grandTotal = cartTotal + shippingCost;
 
- // Kampanya bilgilerini topla
- const campaignInfo = useMemo(() => {
-  const campaignItems = (cartWithCampaigns || cart || []).filter(item => item.campaignId && item.campaignTitle);
-  if (campaignItems.length === 0) return null;
-
-  const campaignGroups = {};
-  campaignItems.forEach(item => {
-   const key = `${item.campaignId}_${item.campaignTitle}`;
-   if (!campaignGroups[key]) {
-    campaignGroups[key] = {
-     campaignId: item.campaignId,
-     campaignTitle: item.campaignTitle,
-     items: [],
-     originalTotal: 0,
-     campaignTotal: 0,
-    };
-   }
-   // Kampanya fiyatı varsa, orijinal fiyat ürünün normal fiyatı olmalı
-   const originalPrice = item.price;
-   campaignGroups[key].items.push(item);
-   campaignGroups[key].originalTotal += originalPrice * (item.quantity || 1);
-   campaignGroups[key].campaignTotal += (item.campaignPrice || originalPrice) * (item.quantity || 1);
-  });
-
-  return Object.values(campaignGroups);
- }, [cartWithCampaigns, cart]);
 
  const [addresses, setAddresses] = useState([]);
  const [addressesLoading, setAddressesLoading] = useState(true);
@@ -388,9 +205,8 @@ export default function OdemePage() {
   }
 
   // 3D Secure için kart bilgileri kontrolü
-  if (selectedCardId) {
-
-  } else if (!cardData.cardNumber || !cardData.cardHolder || !cardData.month || !cardData.year || !cardData.cvc) {
+  // Eğer kayıtlı kart seçilmemişse, kart bilgilerini kontrol et
+  if (!selectedCardId && (!cardData.cardNumber || !cardData.cardHolder || !cardData.month || !cardData.year || !cardData.cvc)) {
    setError("Lütfen tüm kart bilgilerini doldurun.");
    setIsSubmitting(false);
    return;
@@ -429,11 +245,8 @@ export default function OdemePage() {
     }
     : null;
 
-   const payloadItems = (cartWithCampaigns || cart || []).map((i) => {
-    let price = i.campaignPrice;
-    if (!price) {
-     price = i.discountPrice && i.discountPrice < i.price ? i.discountPrice : i.price;
-    }
+   const payloadItems = (cart || []).map((i) => {
+    const price = i.discountPrice && i.discountPrice < i.price ? i.discountPrice : i.price;
     return {
      productId: String(i._id || i.id),
      name: i.name,
@@ -443,8 +256,6 @@ export default function OdemePage() {
      quantity: Number(i.quantity || 1),
      size: i.selectedSize || "",
      color: i.selectedColor || "",
-     campaignId: i.campaignId || null,
-     campaignTitle: i.campaignTitle || null,
     };
    });
 
@@ -514,7 +325,7 @@ export default function OdemePage() {
     const div = document.createElement("div");
     div.innerHTML = tdsData.htmlContent;
     document.body.appendChild(div);
-    
+
     // Form'u bul ve submit et
     const form = div.querySelector("form");
     if (form) {
@@ -612,7 +423,6 @@ export default function OdemePage() {
        onPay={handlePay}
        paymentMethodType={paymentMethod.type}
        isSubmitting={isSubmitting}
-       campaignInfo={campaignInfo}
       />
      </div>
     </div>

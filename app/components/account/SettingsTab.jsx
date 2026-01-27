@@ -72,15 +72,6 @@ export default function SettingsTab({ passwordForm, setPasswordForm, passwordErr
        />
        <span className="text-gray-700">E-posta bildirimleri al</span>
       </label>
-      <label className="flex items-center gap-3 cursor-pointer">
-       <input
-        type="checkbox"
-        checked={notificationPreferences?.campaignNotifications ?? false}
-        onChange={(e) => onNotificationChange('campaignNotifications', e.target.checked)}
-        className="w-5 h-5 cursor-pointer"
-       />
-       <span className="text-gray-700">Kampanya ve fırsat bildirimlerini al</span>
-      </label>
      </div>
     </div>
 

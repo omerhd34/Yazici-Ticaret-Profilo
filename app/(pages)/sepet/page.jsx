@@ -26,17 +26,12 @@ export default function SepetPage() {
   try {
    const cartProductIds = cart.map(item => String(item._id || item.id)).filter(Boolean);
 
-   // Ürünleri ve kampanyaları paralel olarak yükle
-   const [productsRes, campaignsRes] = await Promise.all([
-    axiosInstance.get("/api/products?limit=1000"),
-    axiosInstance.get("/api/campaigns")
-   ]);
+   // Ürünleri yükle
+   const productsRes = await axiosInstance.get("/api/products?limit=1000");
 
    const productsData = productsRes.data;
-   const campaignsData = campaignsRes.data;
 
    const allProducts = productsData.data || productsData.products || [];
-   const campaigns = campaignsData.success ? campaignsData.data || [] : [];
 
    if (productsData.success && allProducts.length > 0) {
     // Önce sepetteki tüm ürünlerin serialNumber'larını hesapla
@@ -59,42 +54,7 @@ export default function SepetPage() {
      };
     }).filter(Boolean);
 
-    // Her kampanya için kampanyadaki tüm ürünlerin sepette olup olmadığını kontrol et
-    const campaignProductCounts = {};
-    campaigns.forEach(campaign => {
-     if (campaign.isActive && campaign.productCodes && Array.isArray(campaign.productCodes) && campaign.campaignPrice) {
-      // Kampanyadaki toplam ürün sayısı (kampanya kodlarının sayısı)
-      const campaignTotalProductCount = campaign.productCodes.length;
-
-      // Sepetteki bu kampanyaya ait ürünlerin serialNumber'larını topla (seçili renge göre)
-      const cartSerialNumbers = new Set();
-      cartWithSerialNumbers.forEach(item => {
-       // Seçili renge göre hesaplanmış serialNumber'ı kullan
-       const itemSerialNumber = item.serialNumber;
-       if (campaign.productCodes.includes(itemSerialNumber)) {
-        cartSerialNumbers.add(itemSerialNumber);
-       }
-      });
-
-      // Kampanyadaki TÜM ürün kodlarının sepette olup olmadığını kontrol et
-      const allCampaignProductsInCart = campaign.productCodes.every(code =>
-       cartSerialNumbers.has(code)
-      );
-
-      // Sadece kampanyadaki TÜM ürünler sepetteyse kampanya fiyatını uygula
-      if (allCampaignProductsInCart && campaignTotalProductCount > 0) {
-       const campaignIdStr = String(campaign._id);
-       // Kampanya fiyatını kampanyadaki toplam ürün sayısına böl (kampanya sayfasındaki mantıkla aynı)
-       campaignProductCounts[campaignIdStr] = {
-        cartCount: campaignTotalProductCount,
-        pricePerProduct: campaign.campaignPrice / campaignTotalProductCount,
-        campaign,
-       };
-      }
-     }
-    });
-
-    // Kampanyaları kontrol et ve sepetteki ürünlere uygula
+    // Sepetteki ürünleri güncelle
     const updatedCart = cart.map(cartItem => {
      const productId = String(cartItem._id || cartItem.id);
      const currentProduct = allProducts.find(p => String(p._id) === productId);
@@ -107,26 +67,6 @@ export default function SepetPage() {
 
       const colorSerialNumber = selectedColorObj?.serialNumber || currentProduct.serialNumber;
 
-      // Kampanya bilgilerini kontrol et ve güncelle
-      let campaignPrice = null;
-      let campaignId = null;
-      let campaignTitle = null;
-      let campaignTotalPrice = null;
-
-      // Önceden hesaplanmış kampanya bilgilerini kullan (sadece kampanyadaki TÜM ürünler sepetteyse)
-      for (const [campId, campaignInfo] of Object.entries(campaignProductCounts)) {
-       const isInCampaign = campaignInfo.campaign.productCodes.includes(colorSerialNumber) ||
-        campaignInfo.campaign.productCodes.includes(currentProduct.serialNumber);
-
-       if (isInCampaign) {
-        campaignPrice = campaignInfo.pricePerProduct;
-        campaignId = campaignInfo.campaign._id;
-        campaignTitle = campaignInfo.campaign.title;
-        campaignTotalPrice = campaignInfo.campaign.campaignPrice;
-        break; // İlk eşleşen kampanyayı kullan
-       }
-      }
-
       return {
        ...cartItem,
        ...currentProduct,
@@ -135,11 +75,6 @@ export default function SepetPage() {
        serialNumber: colorSerialNumber,
        quantity: cartItem.quantity,
        addedAt: cartItem.addedAt,
-       // Kampanya bilgilerini güncelle
-       campaignPrice: campaignPrice,
-       campaignId: campaignId,
-       campaignTitle: campaignTitle,
-       campaignTotalPrice: campaignTotalPrice,
       };
      }
      return cartItem;
@@ -191,40 +126,9 @@ export default function SepetPage() {
 
  const getCartTotal = () => {
   return cartItems.reduce((total, item) => {
-   // Kampanya fiyatı varsa onu kullan
-   let price = item.campaignPrice;
-   if (!price) {
-    price = (item.discountPrice && item.discountPrice < item.price) ? item.discountPrice : item.price;
-   }
+   const price = (item.discountPrice && item.discountPrice < item.price) ? item.discountPrice : item.price;
    return total + price * item.quantity;
   }, 0);
- };
-
- // Kampanya bilgilerini topla
- const getCampaignInfo = () => {
-  const campaignItems = cartItems.filter(item => item.campaignId && item.campaignTitle);
-  if (campaignItems.length === 0) return null;
-
-  const campaignGroups = {};
-  campaignItems.forEach(item => {
-   const key = `${item.campaignId}_${item.campaignTitle}`;
-   if (!campaignGroups[key]) {
-    campaignGroups[key] = {
-     campaignId: item.campaignId,
-     campaignTitle: item.campaignTitle,
-     items: [],
-     originalTotal: 0,
-     campaignTotal: 0,
-    };
-   }
-   // Kampanya fiyatı varsa, orijinal fiyat ürünün normal fiyatı olmalı
-   const originalPrice = item.price;
-   campaignGroups[key].items.push(item);
-   campaignGroups[key].originalTotal += originalPrice * item.quantity;
-   campaignGroups[key].campaignTotal += (item.campaignPrice || originalPrice) * item.quantity;
-  });
-
-  return Object.values(campaignGroups);
  };
 
  const handleCheckout = () => {
@@ -265,7 +169,6 @@ export default function SepetPage() {
       canCheckout={canCheckout}
       minOrderTotal={minOrderTotal}
       onCheckout={handleCheckout}
-      campaignInfo={getCampaignInfo()}
      />
     </div>
    </div>

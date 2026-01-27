@@ -175,7 +175,6 @@ export default function Hesabim() {
 
  const [notificationPreferences, setNotificationPreferences] = useState({
   emailNotifications: true,
-  campaignNotifications: false,
  });
 
  const [addresses, setAddresses] = useState([]);
@@ -272,7 +271,6 @@ export default function Hesabim() {
       if (data.user.notificationPreferences) {
        setNotificationPreferences({
         emailNotifications: data.user.notificationPreferences.emailNotifications !== undefined ? data.user.notificationPreferences.emailNotifications : true,
-        campaignNotifications: data.user.notificationPreferences.campaignNotifications !== undefined ? data.user.notificationPreferences.campaignNotifications : false,
        });
       }
      } else {

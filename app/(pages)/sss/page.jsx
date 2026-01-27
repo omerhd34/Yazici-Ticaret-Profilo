@@ -72,8 +72,8 @@ export default function SSSPage() {
    answer: "Giriş sayfasında 'Şifremi Unuttum' linkine tıklayarak e-posta adresinize şifre sıfırlama bağlantısı gönderebilirsiniz. E-postanızı kontrol ederek yeni şifrenizi oluşturabilirsiniz."
   },
   {
-   question: "Kampanyalar ve indirimler hakkında nasıl bilgi alabilirim?",
-   answer: "Kampanyalar ve indirimler hakkında bilgi almak için e-bültenimize abone olabilirsiniz. Ayrıca 'İndirimler' kategorisinden güncel indirimli ürünleri görüntüleyebilirsiniz."
+   question: "İndirimler hakkında nasıl bilgi alabilirim?",
+   answer: "İndirimler hakkında bilgi almak için 'İndirimler' kategorisinden güncel indirimli ürünleri görüntüleyebilirsiniz."
   },
   {
    question: "Müşteri hizmetlerine nasıl ulaşabilirim?",

@@ -37,6 +37,8 @@ export default function ProductCard({ product, priority = false, onColorChange, 
  const colorDiscountPrice = currentColor?.discountPrice !== undefined ? currentColor.discountPrice : product.discountPrice;
  const colorSerialNumber = currentColor?.serialNumber || product.serialNumber;
 
+const finalPrice = colorDiscountPrice && colorDiscountPrice < colorPrice ? colorDiscountPrice : colorPrice;
+
  const sortedColors = validColors;
  const hasMultipleColors = sortedColors.length > 1;
 

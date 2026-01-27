@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { MdReceiptLong, MdInventory2, MdEmail } from "react-icons/md";
-import { HiShoppingBag, HiSparkles } from "react-icons/hi";
+import { HiShoppingBag } from "react-icons/hi";
 
 export default function QuickAccessCards() {
  return (
@@ -70,21 +70,6 @@ export default function QuickAccessCards() {
     </div>
    </Link>
 
-   <Link
-    href="/admin/kampanyalar"
-    className="group border rounded-xl p-6 hover:border-indigo-300 hover:bg-indigo-50 transition"
-   >
-    <div className="flex items-center justify-between gap-5">
-     <div>
-      <div className="text-xs font-semibold text-gray-500">Kampanya</div>
-      <div className="text-lg font-black text-gray-900 mt-1">Kampanyalar</div>
-      <div className="text-sm text-gray-600 mt-1">Kampanya yönetimi</div>
-     </div>
-     <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center group-hover:bg-indigo-700 transition">
-      <HiSparkles size={22} />
-     </div>
-    </div>
-   </Link>
   </div>
  );
 }

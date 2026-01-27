@@ -15,15 +15,15 @@ export default function UserOrderDetailModal({ show, order, addresses, onClose, 
   return () => clearInterval(timer);
  }, []);
 
- // Kampanyadaki ürünlerin orijinal fiyatlarını bulmak için ürünleri API'den çek
+
+ // Ürünlerin orijinal fiyatlarını bulmak için ürünleri API'den çek
  useEffect(() => {
   const fetchProducts = async () => {
    const items = Array.isArray(order?.items) ? order.items : [];
-   const campaignItems = items.filter(item => item.campaignId && item.campaignTitle);
-   if (campaignItems.length === 0) return;
+   if (items.length === 0) return;
 
    // Ürün ID'lerini topla
-   const productIds = campaignItems
+   const productIds = items
     .map(item => item.productId || item._id || item.id)
     .filter(Boolean)
     .map(id => String(id));
@@ -105,38 +105,6 @@ export default function UserOrderDetailModal({ show, order, addresses, onClose, 
  const items = useMemo(() => Array.isArray(order?.items) ? order.items : [], [order]);
  const groups = new Map();
 
- // Kampanya bilgilerini topla
- const campaignInfo = useMemo(() => {
-  const campaignItems = items.filter(item => item.campaignId && item.campaignTitle);
-  if (campaignItems.length === 0) return null;
-
-  const campaignGroups = {};
-  campaignItems.forEach(item => {
-   const key = `${item.campaignId}_${item.campaignTitle}`;
-   if (!campaignGroups[key]) {
-    campaignGroups[key] = {
-     campaignId: item.campaignId,
-     campaignTitle: item.campaignTitle,
-     items: [],
-     originalTotal: 0,
-     campaignTotal: 0,
-    };
-   }
-   const qty = Number(item.quantity || 1);
-   const campaignPrice = Number(item.price || 0);
-
-   // Orijinal fiyatı bul: API'den çekilen ürün verilerini kullan
-   const productId = String(item.productId || item._id || item.id || "");
-   const productInfo = productsData.get(productId);
-   const originalPrice = productInfo ? productInfo.originalPrice : campaignPrice;
-
-   campaignGroups[key].items.push(item);
-   campaignGroups[key].originalTotal += originalPrice * qty;
-   campaignGroups[key].campaignTotal += campaignPrice * qty;
-  });
-
-  return Object.values(campaignGroups);
- }, [items, productsData]);
 
  for (const it of items) {
   const name = it?.name || it?.productName || it?.title || "Ürün";
@@ -145,9 +113,6 @@ export default function UserOrderDetailModal({ show, order, addresses, onClose, 
   const price = Number(it?.price || 0) || 0;
   const color = it?.color ? String(it.color).trim() : "";
   const serialNumber = it?.serialNumber ? String(it.serialNumber).trim() : "";
-  const campaignId = it?.campaignId || null;
-  const campaignTitle = it?.campaignTitle || null;
-
   if (!groups.has(key)) {
    groups.set(key, {
     name,
@@ -156,8 +121,6 @@ export default function UserOrderDetailModal({ show, order, addresses, onClose, 
     originalAmount: 0,
     colorCounts: new Map(),
     serialNumber: serialNumber || "",
-    campaignId,
-    campaignTitle,
    });
   }
   const g = groups.get(key);
@@ -175,11 +138,6 @@ export default function UserOrderDetailModal({ show, order, addresses, onClose, 
   // Seri numarasını ilk bulunan değerle set et (eğer yoksa)
   if (serialNumber && !g.serialNumber) {
    g.serialNumber = serialNumber;
-  }
-  // Kampanya bilgisini ilk bulunan değerle set et
-  if (campaignId && !g.campaignId) {
-   g.campaignId = campaignId;
-   g.campaignTitle = campaignTitle;
   }
  }
  const grouped = Array.from(groups.values());
@@ -345,11 +303,6 @@ export default function UserOrderDetailModal({ show, order, addresses, onClose, 
          <div key={`${g.name}-${idx}`} className="border border-gray-200 rounded-lg p-4 flex items-center justify-between gap-4">
           <div className="flex-1">
            <p className="font-semibold text-gray-900">{g.name}</p>
-           {g.campaignTitle && (
-            <p className="text-xs text-purple-600 font-semibold mt-1">
-             {g.campaignTitle} Kampanyası
-            </p>
-           )}
            <p className="text-sm text-gray-600">
             {g.serialNumber && (
              <span>
@@ -360,7 +313,7 @@ export default function UserOrderDetailModal({ show, order, addresses, onClose, 
           </div>
           <div className="text-right">
            <p className="text-sm text-gray-600">Adet: {g.totalQty}</p>
-           {g.campaignId && g.originalAmount > g.totalAmount ? (
+           {g.originalAmount > g.totalAmount ? (
             <div className="flex flex-col items-end gap-1">
              <p className="font-bold text-gray-900">{g.totalAmount.toFixed(2)} ₺</p>
              <p className="text-sm text-gray-400 line-through">{g.originalAmount.toFixed(2)} ₺</p>
@@ -373,35 +326,6 @@ export default function UserOrderDetailModal({ show, order, addresses, onClose, 
         );
        })}
       </div>
-      {campaignInfo && campaignInfo.length > 0 && (
-       <div className="mt-4 space-y-2">
-        {campaignInfo.map((campaign, index) => {
-         const discount = campaign.originalTotal - campaign.campaignTotal;
-         const discountPercentage = campaign.originalTotal > 0
-          ? ((discount / campaign.originalTotal) * 100).toFixed(1)
-          : 0;
-         return (
-          <div key={campaign.campaignId || index} className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-           <p className="text-xs font-semibold text-purple-800 mb-1">
-            {campaign.campaignTitle} Kampanyası
-           </p>
-           <div className="text-xs text-purple-700 space-y-1">
-            <p>Bu siparişte kampanya fiyatı uygulanmıştır.</p>
-            {campaign.originalTotal > campaign.campaignTotal && (
-             <div className="flex items-center gap-2 mt-2">
-              <span className="line-through text-gray-500">{campaign.originalTotal.toFixed(2)} ₺</span>
-              <span className="font-semibold text-purple-800">{campaign.campaignTotal.toFixed(2)} ₺</span>
-              {discount > 0 && (
-               <span className="text-green-600 font-semibold">%{discountPercentage} indirim</span>
-              )}
-             </div>
-            )}
-           </div>
-          </div>
-         );
-        })}
-       </div>
-      )}
      </div>
     </div>
 

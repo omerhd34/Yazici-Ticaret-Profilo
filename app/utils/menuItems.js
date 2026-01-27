@@ -45,5 +45,4 @@ export const MENU_ITEMS = [
  { name: "Süpürge", path: "/kategori/elektrikli-supurge", isSpecial: false },
  { name: "Kahve Makinesi", path: "/kategori/turk-kahve-makineleri", isSpecial: false },
  { name: "İndirimler", path: "/kategori/indirim", isSpecial: true },
- { name: "Kampanyalar", path: "/kategori/kampanyalar", isSpecial: true },
 ];

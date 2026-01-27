@@ -45,7 +45,7 @@ export default function GizlilikPolitikasiPage() {
        <li>Sipariş ve satış süreçlerinin yürütülmesi</li>
        <li>Müşteri hizmetleri ve destek sağlanması</li>
        <li>Ürün ve hizmetlerin geliştirilmesi</li>
-       <li>Kampanya, bilgilendirme ve pazarlama faaliyetleri</li>
+       <li>Bilgilendirme ve pazarlama faaliyetleri</li>
        <li>Yasal yükümlülüklerin yerine getirilmesi</li>
        <li>Güvenlik ve dolandırıcılığın önlenmesi</li>
       </ul>
