@@ -25,6 +25,7 @@ export default function AdminUrunYonetimiPage() {
  const [selectedStockFilter, setSelectedStockFilter] = useState(null);
  const [selectedFeaturedFilter, setSelectedFeaturedFilter] = useState(null);
  const [selectedNewFilter, setSelectedNewFilter] = useState(null);
+ const [selectedDiscountFilter, setSelectedDiscountFilter] = useState(null);
 
  useEffect(() => {
   checkAuth();
@@ -207,11 +208,13 @@ export default function AdminUrunYonetimiPage() {
      selectedStockFilter={selectedStockFilter}
      selectedFeaturedFilter={selectedFeaturedFilter}
      selectedNewFilter={selectedNewFilter}
+     selectedDiscountFilter={selectedDiscountFilter}
      onCategoryChange={setSelectedCategory}
      onSubCategoryChange={setSelectedSubCategory}
      onStockFilterChange={setSelectedStockFilter}
      onFeaturedFilterChange={setSelectedFeaturedFilter}
      onNewFilterChange={setSelectedNewFilter}
+     onDiscountFilterChange={setSelectedDiscountFilter}
     />
    </div>
 

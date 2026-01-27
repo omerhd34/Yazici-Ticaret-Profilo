@@ -7,7 +7,7 @@ import { MdDelete, MdEdit, MdInventory2, MdStar, MdCheckCircle, MdNewReleases, M
 import { MENU_ITEMS } from "@/app/utils/menuItems";
 import { getProductUrl } from "@/app/utils/productUrl";
 
-export default function ProductListTable({ products, onEdit, onDelete, onAddNew, selectedCategory, selectedSubCategory, selectedStockFilter, selectedFeaturedFilter, selectedNewFilter, onCategoryChange, onSubCategoryChange, onStockFilterChange, onFeaturedFilterChange, onNewFilterChange }) {
+export default function ProductListTable({ products, onEdit, onDelete, onAddNew, selectedCategory, selectedSubCategory, selectedStockFilter, selectedFeaturedFilter, selectedNewFilter, selectedDiscountFilter, onCategoryChange, onSubCategoryChange, onStockFilterChange, onFeaturedFilterChange, onNewFilterChange, onDiscountFilterChange }) {
  const [sortBy, setSortBy] = useState(null); // 'price' | 'stock' | null
  const [sortOrder, setSortOrder] = useState('asc'); // 'asc' | 'desc'
 
@@ -100,6 +100,37 @@ export default function ProductListTable({ products, onEdit, onDelete, onAddNew,
    }
   }
 
+  if (selectedDiscountFilter) {
+   // İndirimli ürün kontrolü
+   let hasDiscount = false;
+
+   // Renk varyantları varsa kontrol et
+   if (product.colors && Array.isArray(product.colors) && product.colors.length > 0) {
+    const colorVariants = product.colors.filter(c => typeof c === 'object' && c.serialNumber);
+    if (colorVariants.length > 0) {
+     // En az bir renk varyantında indirim varsa ürün indirimli sayılır
+     hasDiscount = colorVariants.some(color => {
+      const colorPrice = color.price !== undefined ? Number(color.price) : product.price;
+      const colorDiscountPrice = color.discountPrice !== undefined ? color.discountPrice : null;
+      return colorDiscountPrice !== null && colorDiscountPrice < colorPrice;
+     });
+    } else {
+     // Renk varyantı yoksa ana ürünün indirimini kontrol et
+     hasDiscount = product.discountPrice !== null && product.discountPrice !== undefined && product.discountPrice < product.price;
+    }
+   } else {
+    // Renk yoksa ana ürünün indirimini kontrol et
+    hasDiscount = product.discountPrice !== null && product.discountPrice !== undefined && product.discountPrice < product.price;
+   }
+
+   if (selectedDiscountFilter === 'discounted' && !hasDiscount) {
+    return false;
+   }
+   if (selectedDiscountFilter === 'notDiscounted' && hasDiscount) {
+    return false;
+   }
+  }
+
   return true;
  });
 
@@ -187,7 +218,7 @@ export default function ProductListTable({ products, onEdit, onDelete, onAddNew,
     <div>
      <h2 className="text-2xl font-bold">Ürün Yönetimi</h2>
      <p className="text-sm text-gray-600 mt-2">
-      {selectedCategory || selectedSubCategory || selectedStockFilter || selectedFeaturedFilter || selectedNewFilter ? (
+      {selectedCategory || selectedSubCategory || selectedStockFilter || selectedFeaturedFilter || selectedNewFilter || selectedDiscountFilter ? (
        <>
         <span className="font-semibold text-indigo-600">{filteredProducts.length}</span> ürün bulundu
        </>
@@ -323,7 +354,28 @@ export default function ProductListTable({ products, onEdit, onDelete, onAddNew,
        <option value="notNew">Yeni Olmayanlar</option>
       </select>
      </div>
-     {(selectedCategory || selectedSubCategory || selectedStockFilter || selectedFeaturedFilter || selectedNewFilter) && (
+     <div className="flex-1 min-w-[200px]">
+      <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2.5">
+       <span className="w-1.5 h-1.5 bg-red-600 rounded-full"></span>
+       İndirimli Ürünler
+      </label>
+      <select
+       value={selectedDiscountFilter || ""}
+       onChange={(e) => onDiscountFilterChange(e.target.value || null)}
+       className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 cursor-pointer appearance-none bg-white text-gray-800 font-medium shadow-sm hover:border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200 text-sm"
+       style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23DC2626' d='M8 11L3 6h10z'/%3E%3C/svg%3E")`,
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'right 1rem center',
+        backgroundSize: '16px'
+       }}
+      >
+       <option value="">Tümü</option>
+       <option value="discounted">İndirimli Ürünler</option>
+       <option value="notDiscounted">İndirimsiz Ürünler</option>
+      </select>
+     </div>
+     {(selectedCategory || selectedSubCategory || selectedStockFilter || selectedFeaturedFilter || selectedNewFilter || selectedDiscountFilter) && (
       <button
        onClick={() => {
         onCategoryChange(null);
@@ -331,6 +383,7 @@ export default function ProductListTable({ products, onEdit, onDelete, onAddNew,
         onStockFilterChange(null);
         onFeaturedFilterChange(null);
         onNewFilterChange(null);
+        onDiscountFilterChange(null);
        }}
        className="px-6 py-3 bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl font-bold shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer"
       >
